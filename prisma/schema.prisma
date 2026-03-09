@@ -1,0 +1,129 @@
+// Prisma schema - Sistema de Gestión de Eventos Privados
+// Neon PostgreSQL (Vercel)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("EMPLEADO") // ADMIN | EMPLEADO
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Evento {
+  id          String   @id @default(cuid())
+  nombre      String
+  fecha       DateTime
+  fechaFin    DateTime?
+  tipo        String   // CORPORATIVO | PARTICULAR
+  cliente     String
+  estado      String   @default("BORRADOR") // BORRADOR | CONFIRMADO | EN_CURSO | FINALIZADO | FACTURADO
+  descripcion String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  pagosProveedores PagoProveedor[]
+  diasUtileros     DiaUtilero[]
+  ingresos         Ingreso[]
+  cajaChica        CajaChica[]
+}
+
+model Rubro {
+  id          String   @id @default(cuid())
+  nombre      String   @unique
+  proveedores Proveedor[]
+  pagos       PagoProveedor[]
+}
+
+model Proveedor {
+  id          String   @id @default(cuid())
+  nombre      String
+  rubroId     String
+  rubro       Rubro    @relation(fields: [rubroId], references: [id])
+  contacto    String?
+  cuit        String?
+  razonSocial String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  pagos PagoProveedor[]
+}
+
+model PagoProveedor {
+  id          String   @id @default(cuid())
+  eventoId    String
+  evento      Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  proveedorId String
+  proveedor   Proveedor @relation(fields: [proveedorId], references: [id])
+  rubroId     String
+  rubro       Rubro    @relation(fields: [rubroId], references: [id])
+  monto       Float
+  fecha       DateTime
+  concepto    String?
+  metodoPago  String   @default("TRANSFERENCIA") // EFECTIVO | TRANSFERENCIA | CHEQUE | OTRO
+  createdAt   DateTime @default(now())
+
+  @@index([eventoId])
+  @@index([proveedorId])
+}
+
+model Utilero {
+  id           String       @id @default(cuid())
+  nombre       String
+  tarifaPorDia Float
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  diasTrabajados DiaUtilero[]
+}
+
+model DiaUtilero {
+  id        String   @id @default(cuid())
+  eventoId  String
+  evento    Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  utileroId String
+  utilero   Utilero  @relation(fields: [utileroId], references: [id])
+  tipo      String   @default("EVENTO") // ARMADO | GUARDIA | DESARME_EVENTO | DESARME_DEPO | EVENTO (día del evento)
+  dias      Float
+  monto     Float
+  createdAt DateTime @default(now())
+
+  @@unique([eventoId, utileroId, tipo])
+  @@index([eventoId])
+}
+
+model CajaChica {
+  id               String   @id @default(cuid())
+  eventoId         String
+  evento           Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  monto            Float
+  empleadaEncargada String  // Nombre de la empleada que recibe
+  concepto         String?  // comida, taxis, gastos extras, etc.
+  fecha            DateTime @default(now())
+
+  @@index([eventoId])
+}
+
+model Ingreso {
+  id            String   @id @default(cuid())
+  eventoId      String
+  evento        Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  monto         Float
+  concepto      String?
+  fecha         DateTime
+  tipo          String   @default("FACTURACION") // FACTURACION | ANTICIPO | PAGO_PARCIAL
+  numeroFactura String?
+  createdAt     DateTime @default(now())
+
+  @@index([eventoId])
+}
