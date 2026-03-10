@@ -1,37 +1,49 @@
-# Deploy en Vercel + Neon
+# Deploy en Vercel + Neon (BD compartida con Shop y Deco)
 
-## 1. Base de datos (Neon)
+Eventos comparte la base de datos con Shop y Deco. **Shop gestiona las migraciones**; Eventos solo usa `prisma generate`.
 
-- En [Vercel](https://vercel.com): **Project Settings → Storage → Create Database → Neon**
-- O en [neon.tech](https://neon.tech): crear proyecto y copiar la connection string
-- Usa la URL **pooled** (con `-pooler` en el host) para serverless
+## 1. Resolver la migración fallida (solo si el build falló con P3018)
 
-## 2. Variables de entorno en Vercel
+Si en producción viste el error `relation "User" already exists`, ejecuta una vez contra la BD:
 
-En **Project Settings → Environment Variables** añade:
+```bash
+DATABASE_URL="tu-url-neon" npx prisma migrate resolve --rolled-back "20250304000000_init_postgres"
+```
 
-| Variable       | Valor                                      | Notas                          |
-|----------------|--------------------------------------------|--------------------------------|
-| `DATABASE_URL` | `postgresql://...@...-pooler.../neondb?sslmode=require` | La que te da Neon/Vercel       |
-| `AUTH_SECRET`  | `openssl rand -base64 32`                   | Ejecuta el comando y pega el resultado |
-| `NEXTAUTH_URL` | `https://tu-proyecto.vercel.app`           | Tu URL de producción (o déjalo vacío y Vercel usará `VERCEL_URL`) |
+## 2. Crear tablas de Eventos (solo si no existen)
 
-## 3. Deploy
+Las tablas de Eventos no existen en la BD compartida hasta que las crees. Ejecuta una vez:
+
+```bash
+# Con psql (reemplaza DATABASE_URL por tu URL):
+psql "postgresql://..." -f prisma/eventos-tables.sql
+
+# O desde Neon Dashboard: SQL Editor → pega el contenido de prisma/eventos-tables.sql
+```
+
+## 3. Variables de entorno en Vercel
+
+| Variable       | Valor                                      |
+|----------------|--------------------------------------------|
+| `DATABASE_URL` | URL de Neon (pooled)                        |
+| `AUTH_SECRET`  | Resultado de `openssl rand -base64 32`     |
+| `NEXTAUTH_URL` | `https://tu-proyecto.vercel.app`           |
+
+## 4. Deploy
 
 ```bash
 vercel
 ```
 
-O conecta el repo en GitHub y Vercel hará deploy automático en cada push.
+El build ejecuta solo `prisma generate && next build` (sin `migrate deploy`).
 
-## 4. Seed (opcional)
+## 5. Seed (opcional)
 
-Tras el primer deploy, si quieres usuarios de prueba:
+Para usuarios de prueba de Eventos:
 
 ```bash
-DATABASE_URL="tu-url-de-neon" npx prisma db seed
+DATABASE_URL="tu-url" npx prisma db seed
 ```
 
-Usuarios de prueba:
 - **Admin:** `admin@eventos.com` / `admin123`
 - **Empleado:** `empleado@eventos.com` / `empleado123`

@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const caja = await prisma.cajaChica.create({
+    const caja = await prisma.cajaChicaEvento.create({
       data: {
         eventoId,
         monto: parseFloat(monto),

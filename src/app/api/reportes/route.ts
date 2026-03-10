@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const cajaChica = await prisma.cajaChica.findMany({
+  const cajaChica = await prisma.cajaChicaEvento.findMany({
     where: { fecha: { gte: fechaDesde, lte: fechaHasta } },
   });
 

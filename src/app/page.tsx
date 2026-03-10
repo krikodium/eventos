@@ -40,7 +40,7 @@ export default async function HomePage() {
     prisma.ingreso.aggregate({ _sum: { monto: true } }),
     prisma.pagoProveedor.aggregate({ _sum: { monto: true } }),
     prisma.diaUtilero.aggregate({ _sum: { monto: true } }),
-    prisma.cajaChica.aggregate({ _sum: { monto: true } }),
+    prisma.cajaChicaEvento.aggregate({ _sum: { monto: true } }),
   ]);
 
   const ingresos = totalIngresos._sum.monto ?? 0;
@@ -59,7 +59,7 @@ export default async function HomePage() {
 
   const proveedoresConNombre = await Promise.all(
     topProveedores.map(async (p) => {
-      const prov = await prisma.proveedor.findUnique({
+      const prov = await prisma.proveedorEvento.findUnique({
         where: { id: p.proveedorId },
         include: { rubro: true },
       });

@@ -14,6 +14,7 @@ async function main() {
       password: adminPassword,
       name: "Administrador",
       role: "ADMIN",
+      updatedAt: new Date(),
     },
   });
   console.log("Admin creado:", admin.email);
@@ -28,6 +29,7 @@ async function main() {
       password: empPassword,
       name: "Empleado Demo",
       role: "EMPLEADO",
+      updatedAt: new Date(),
     },
   });
   console.log("Empleado creado:", empleado.email);
@@ -45,9 +47,9 @@ async function main() {
   // Proveedores de ejemplo
   const catering = rubros.find((r) => r.nombre === "Catering")!;
   const musica = rubros.find((r) => r.nombre === "Música")!;
-  const proveedoresCount = await prisma.proveedor.count();
+  const proveedoresCount = await prisma.proveedorEvento.count();
   if (proveedoresCount === 0) {
-    await prisma.proveedor.createMany({
+    await prisma.proveedorEvento.createMany({
       data: [
         { nombre: "Catering Premium SA", rubroId: catering.id, contacto: "011-1234-5678" },
         { nombre: "DJ Events", rubroId: musica.id, contacto: "011-9876-5432" },
@@ -67,7 +69,6 @@ async function main() {
     });
     console.log("Utileros de ejemplo creados");
   }
-  console.log("Utileros de ejemplo creados");
 }
 
 main()

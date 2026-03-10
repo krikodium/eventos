@@ -6,7 +6,7 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-  const proveedores = await prisma.proveedor.findMany({
+  const proveedores = await prisma.proveedorEvento.findMany({
     include: { rubro: true },
     orderBy: { nombre: "asc" },
   });
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     if (!nombre || !rubroId) {
       return NextResponse.json({ error: "Faltan nombre o rubro" }, { status: 400 });
     }
-    const proveedor = await prisma.proveedor.create({
+    const proveedor = await prisma.proveedorEvento.create({
       data: {
         nombre,
         rubroId,
