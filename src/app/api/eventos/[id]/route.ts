@@ -32,7 +32,23 @@ export async function PUT(
   const { id } = await params;
   try {
     const body = await req.json();
-    const { nombre, fecha, fechaFin, tipo, cliente, estado, descripcion } = body;
+    const {
+      nombre,
+      fecha,
+      fechaFin,
+      tipo,
+      cliente,
+      estado,
+      descripcion,
+      organizadora,
+      provincia,
+      localidad,
+      presupuestoTotal,
+      presupuestoNro,
+      formaPagoAcordada,
+      honorariosHC,
+      viaticosArmado,
+    } = body;
     const evento = await prisma.evento.update({
       where: { id },
       data: {
@@ -43,6 +59,14 @@ export async function PUT(
         ...(cliente && { cliente }),
         ...(estado && { estado }),
         ...(descripcion !== undefined && { descripcion: descripcion || null }),
+        ...(organizadora !== undefined && { organizadora: organizadora || null }),
+        ...(provincia !== undefined && { provincia: provincia || null }),
+        ...(localidad !== undefined && { localidad: localidad || null }),
+        ...(presupuestoTotal !== undefined && { presupuestoTotal: presupuestoTotal != null ? Number(presupuestoTotal) : null }),
+        ...(presupuestoNro !== undefined && { presupuestoNro: presupuestoNro || null }),
+        ...(formaPagoAcordada !== undefined && { formaPagoAcordada: formaPagoAcordada || null }),
+        ...(honorariosHC !== undefined && { honorariosHC: honorariosHC != null ? Number(honorariosHC) : null }),
+        ...(viaticosArmado !== undefined && { viaticosArmado: viaticosArmado != null ? Number(viaticosArmado) : null }),
       },
     });
     return NextResponse.json(evento);

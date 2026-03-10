@@ -37,16 +37,24 @@ model User {
 // ========== TABLAS PROPIAS DE EVENTOS - Usar eventos-tables.sql para crearlas ==========
 
 model Evento {
-  id           String   @id @default(cuid())
-  nombre       String
-  fecha        DateTime
-  fechaFin     DateTime?
-  tipo         String   // CORPORATIVO | PARTICULAR
-  cliente      String
-  estado       String   @default("BORRADOR") // BORRADOR | CONFIRMADO | EN_CURSO | FINALIZADO | FACTURADO
-  descripcion  String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  nombre               String
+  fecha                DateTime
+  fechaFin             DateTime?
+  tipo                 String   // CORPORATIVO | PARTICULAR
+  cliente              String
+  estado               String   @default("BORRADOR") // BORRADOR | CONFIRMADO | EN_CURSO | FINALIZADO | FACTURADO
+  descripcion          String?
+  organizadora         String?
+  provincia            String?
+  localidad            String?
+  presupuestoTotal     Float?
+  presupuestoNro       String?
+  formaPagoAcordada    String?
+  honorariosHC         Float?
+  viaticosArmado       Float?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   pagosProveedores PagoProveedor[]
   diasUtileros     DiaUtilero[]

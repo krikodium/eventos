@@ -45,26 +45,124 @@ async function main() {
 
     const catering = rubros.find((r) => r.nombre === "Catering")!;
     const musica = rubros.find((r) => r.nombre === "Música")!;
-    const proveedoresCount = await prisma.proveedorEvento.count();
-    if (proveedoresCount === 0) {
-      await prisma.proveedorEvento.createMany({
-        data: [
-          { nombre: "Catering Premium SA", rubroId: catering.id, contacto: "011-1234-5678" },
-          { nombre: "DJ Events", rubroId: musica.id, contacto: "011-9876-5432" },
-        ],
-      });
-      console.log("Proveedores de ejemplo creados");
-    }
+    const decoracion = rubros.find((r) => r.nombre === "Decoración")!;
 
-    const utilerosCount = await prisma.utilero.count();
-    if (utilerosCount === 0) {
-      await prisma.utilero.createMany({
+    let proveedorCatering = await prisma.proveedorEvento.findFirst({ where: { nombre: "Catering Premium SA" } });
+    if (!proveedorCatering) {
+      proveedorCatering = await prisma.proveedorEvento.create({
+        data: { nombre: "Catering Premium SA", rubroId: catering.id, contacto: "011-1234-5678" },
+      });
+    }
+    let proveedorMusica = await prisma.proveedorEvento.findFirst({ where: { nombre: "DJ Events" } });
+    if (!proveedorMusica) {
+      proveedorMusica = await prisma.proveedorEvento.create({
+        data: { nombre: "DJ Events", rubroId: musica.id, contacto: "011-9876-5432" },
+      });
+    }
+    let proveedorDeco = await prisma.proveedorEvento.findFirst({ where: { nombre: "Florería y Deco" } });
+    if (!proveedorDeco) {
+      proveedorDeco = await prisma.proveedorEvento.create({
+        data: { nombre: "Florería y Deco", rubroId: decoracion.id, contacto: "011-5555-1234" },
+      });
+    }
+    console.log("Proveedores listos");
+
+    let utilero1 = await prisma.utilero.findFirst({ where: { nombre: "Juan Pérez" } });
+    if (!utilero1) {
+      utilero1 = await prisma.utilero.create({ data: { nombre: "Juan Pérez", tarifaPorDia: 15000 } });
+    }
+    let utilero2 = await prisma.utilero.findFirst({ where: { nombre: "María García" } });
+    if (!utilero2) {
+      utilero2 = await prisma.utilero.create({ data: { nombre: "María García", tarifaPorDia: 15000 } });
+    }
+    console.log("Utileros listos");
+
+    // 2 eventos con movimientos
+    const eventosCount = await prisma.evento.count();
+    if (eventosCount === 0) {
+      const hoy = new Date();
+      const en2Semanas = new Date(hoy);
+      en2Semanas.setDate(en2Semanas.getDate() + 14);
+
+      const evento1 = await prisma.evento.create({
+        data: {
+          nombre: "Casamiento López - Martínez",
+          fecha: en2Semanas,
+          tipo: "PARTICULAR",
+          cliente: "Fam. López",
+          estado: "CONFIRMADO",
+          descripcion: "Casamiento en salón principal",
+        },
+      });
+      const evento2 = await prisma.evento.create({
+        data: {
+          nombre: "Lanzamiento producto TechCorp",
+          fecha: new Date(en2Semanas.getTime() + 7 * 24 * 60 * 60 * 1000),
+          tipo: "CORPORATIVO",
+          cliente: "TechCorp SA",
+          estado: "BORRADOR",
+          descripcion: "Evento corporativo con 150 invitados",
+        },
+      });
+
+      // Evento 1: pagos, utileros, caja chica, ingresos
+      await prisma.pagoProveedor.createMany({
         data: [
-          { nombre: "Juan Pérez", tarifaPorDia: 15000 },
-          { nombre: "María García", tarifaPorDia: 15000 },
+          { eventoId: evento1.id, proveedorId: proveedorCatering.id, rubroId: catering.id, monto: 450000, fecha: hoy },
+          { eventoId: evento1.id, proveedorId: proveedorMusica.id, rubroId: musica.id, monto: 120000, fecha: hoy },
+          { eventoId: evento1.id, proveedorId: proveedorDeco.id, rubroId: decoracion.id, monto: 85000, fecha: hoy, concepto: "Centros de mesa" },
         ],
       });
-      console.log("Utileros de ejemplo creados");
+      await prisma.diaUtilero.createMany({
+        data: [
+          { eventoId: evento1.id, utileroId: utilero1.id, tipo: "ARMADO", dias: 0.5, monto: 7500 },
+          { eventoId: evento1.id, utileroId: utilero1.id, tipo: "EVENTO", dias: 1, monto: 15000 },
+          { eventoId: evento1.id, utileroId: utilero2.id, tipo: "EVENTO", dias: 1, monto: 15000 },
+          { eventoId: evento1.id, utileroId: utilero2.id, tipo: "DESARME_EVENTO", dias: 0.5, monto: 7500 },
+        ],
+      });
+      await prisma.cajaChicaEvento.createMany({
+        data: [
+          { eventoId: evento1.id, monto: 15000, empleadaEncargada: "María García", concepto: "Comida equipo armado" },
+          { eventoId: evento1.id, monto: 5000, empleadaEncargada: "Juan Pérez", concepto: "Taxis" },
+        ],
+      });
+      await prisma.ingreso.createMany({
+        data: [
+          { eventoId: evento1.id, monto: 200000, tipo: "ANTICIPO", fecha: hoy, concepto: "Anticipo 30%" },
+          { eventoId: evento1.id, monto: 450000, tipo: "FACTURACION", fecha: hoy, numeroFactura: "F-001" },
+        ],
+      });
+
+      // Evento 2: pagos, utileros, caja chica, ingresos
+      await prisma.pagoProveedor.createMany({
+        data: [
+          { eventoId: evento2.id, proveedorId: proveedorCatering.id, rubroId: catering.id, monto: 320000, fecha: hoy, concepto: "Catering para 150 pax" },
+          { eventoId: evento2.id, proveedorId: proveedorMusica.id, rubroId: musica.id, monto: 80000, fecha: hoy },
+        ],
+      });
+      await prisma.diaUtilero.createMany({
+        data: [
+          { eventoId: evento2.id, utileroId: utilero1.id, tipo: "ARMADO", dias: 1, monto: 15000 },
+          { eventoId: evento2.id, utileroId: utilero1.id, tipo: "GUARDIA", dias: 0.5, monto: 7500 },
+          { eventoId: evento2.id, utileroId: utilero1.id, tipo: "EVENTO", dias: 1, monto: 15000 },
+        ],
+      });
+      await prisma.cajaChicaEvento.create({
+        data: {
+          eventoId: evento2.id,
+          monto: 25000,
+          empleadaEncargada: "Juan Pérez",
+          concepto: "Gastos varios equipo",
+        },
+      });
+      await prisma.ingreso.createMany({
+        data: [
+          { eventoId: evento2.id, monto: 150000, tipo: "ANTICIPO", fecha: hoy, concepto: "Anticipo inicial" },
+        ],
+      });
+
+      console.log("2 eventos con movimientos creados");
     }
   } catch (e) {
     console.log("Tablas de Eventos no creadas aún. Ejecuta prisma/eventos-tables.sql para crearlas.");

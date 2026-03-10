@@ -4,6 +4,8 @@ import { Navbar } from "@/components/layout/navbar";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { EventoDetalle } from "@/components/eventos/evento-detalle";
+import { ResumenGastosEvento } from "@/components/eventos/resumen-gastos-evento";
+import { DetallesEstadoPagos } from "@/components/eventos/detalles-estado-pagos";
 
 export default async function EventoPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -43,72 +45,152 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-start mb-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Breadcrumb y header */}
+        <nav className="flex items-center gap-2 text-sm text-slate-500 mb-4">
+          <Link href="/eventos" className="hover:text-sky-600 transition-colors">
+            Eventos
+          </Link>
+          <span>/</span>
+          <span className="text-slate-900 font-medium truncate max-w-[200px] sm:max-w-none">
+            {evento.nombre}
+          </span>
+        </nav>
+
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
           <div>
-            <Link href="/eventos" className="text-sky-600 hover:text-sky-700 text-sm mb-2 inline-block">
-              ← Volver a eventos
-            </Link>
-            <h1 className="text-2xl font-bold text-gray-900">{evento.nombre}</h1>
-            <p className="text-gray-600">
-              {tipos[evento.tipo]} • {evento.cliente} •{" "}
-              {new Date(evento.fecha).toLocaleDateString("es-AR")}
-            </p>
-            <span className="inline-block mt-2 px-2 py-1 rounded text-xs bg-gray-200 text-gray-700">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              {evento.nombre}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2 mt-2 text-slate-600">
+              <span className="text-sm">{tipos[evento.tipo]}</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-sm">{evento.cliente}</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-sm">
+                {new Date(evento.fecha).toLocaleDateString("es-AR", {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+            <span
+              className={`inline-flex mt-3 px-2.5 py-1 rounded-md text-xs font-medium ${
+                evento.estado === "FACTURADO"
+                  ? "bg-emerald-100 text-emerald-800"
+                  : evento.estado === "FINALIZADO"
+                    ? "bg-sky-100 text-sky-800"
+                    : evento.estado === "CONFIRMADO"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-slate-200 text-slate-700"
+              }`}
+            >
               {estados[evento.estado]}
             </span>
           </div>
           {isAdmin && (
             <Link
               href={`/eventos/${evento.id}/editar`}
-              className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 rounded-lg border border-gray-300"
+              className="shrink-0 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg border border-slate-200 font-medium text-sm shadow-sm hover:shadow transition-all"
             >
-              Editar
+              Editar evento
             </Link>
           )}
         </div>
 
+        {/* Detalles del evento y Estado de pagos */}
+        <section className="mb-8">
+          <DetallesEstadoPagos
+            evento={{
+              nombre: evento.nombre,
+              fecha: evento.fecha,
+              tipo: evento.tipo,
+              cliente: evento.cliente,
+              descripcion: evento.descripcion,
+              organizadora: evento.organizadora,
+              provincia: evento.provincia,
+              localidad: evento.localidad,
+              presupuestoTotal: evento.presupuestoTotal,
+              presupuestoNro: evento.presupuestoNro,
+              formaPagoAcordada: evento.formaPagoAcordada,
+              honorariosHC: evento.honorariosHC,
+              viaticosArmado: evento.viaticosArmado,
+            }}
+            ingresos={evento.ingresos}
+          />
+        </section>
+
         {/* Resumen financiero */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Ingresos</p>
-            <p className="text-xl font-semibold text-sky-600">
-              ${totalIngresos.toLocaleString("es-AR")}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Proveedores</p>
-            <p className="text-xl font-semibold text-rose-600">
-              ${totalPagos.toLocaleString("es-AR")}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Utileros</p>
-            <p className="text-xl font-semibold text-rose-600">
-              ${totalUtileros.toLocaleString("es-AR")}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Caja chica</p>
-            <p className="text-xl font-semibold text-gray-700">
-              ${totalCajaChica.toLocaleString("es-AR")}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Balance</p>
-            <p
-              className={`text-xl font-bold ${
-                balance >= 0 ? "text-sky-600" : "text-rose-600"
+        <section className="mb-8">
+          <h2 className="sr-only">Resumen financiero</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
+                Ingresos
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-emerald-600 tabular-nums">
+                ${totalIngresos.toLocaleString("es-AR")}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
+                Proveedores
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-rose-600 tabular-nums">
+                ${totalPagos.toLocaleString("es-AR")}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
+                Utileros
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-rose-600 tabular-nums">
+                ${totalUtileros.toLocaleString("es-AR")}
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
+                Caja chica
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-slate-700 tabular-nums">
+                ${totalCajaChica.toLocaleString("es-AR")}
+              </p>
+            </div>
+            <div
+              className={`bg-white rounded-xl p-4 sm:p-5 border shadow-sm hover:shadow-md transition-shadow col-span-2 lg:col-span-1 ${
+                balance >= 0
+                  ? "border-emerald-200/60"
+                  : "border-rose-200/60"
               }`}
             >
-              ${balance.toLocaleString("es-AR")}
-            </p>
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
+                Balance
+              </p>
+              <p
+                className={`text-xl sm:text-2xl font-bold tabular-nums ${
+                  balance >= 0 ? "text-emerald-600" : "text-rose-600"
+                }`}
+              >
+                ${balance.toLocaleString("es-AR")}
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <EventoDetalle
+        <section className="mb-8">
+          <ResumenGastosEvento
+            pagos={evento.pagosProveedores}
+            diasUtileros={evento.diasUtileros}
+            cajaChica={evento.cajaChica}
+          />
+        </section>
+
+        <section>
+          <EventoDetalle
           evento={evento}
           isAdmin={isAdmin}
           totalIngresos={totalIngresos}
@@ -116,6 +198,7 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
           totalUtileros={totalUtileros}
           totalCajaChica={totalCajaChica}
         />
+        </section>
       </main>
     </div>
   );

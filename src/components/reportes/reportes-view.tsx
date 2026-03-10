@@ -108,135 +108,119 @@ export function ReportesView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-4 items-end p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div>
-          <label className="block text-xs text-gray-600 mb-1">Desde</label>
-          <input
-            type="date"
-            value={desde}
-            onChange={(e) => setDesde(e.target.value)}
-            className="px-4 py-2 rounded bg-white border border-gray-300 text-gray-900"
-          />
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
+          <h2 className="font-semibold text-white text-sm uppercase tracking-wider">
+            Filtros por período
+          </h2>
+          <p className="text-slate-300 text-xs mt-0.5">Selecciona el rango de fechas</p>
         </div>
-        <div>
-          <label className="block text-xs text-gray-600 mb-1">Hasta</label>
-          <input
-            type="date"
-            value={hasta}
-            onChange={(e) => setHasta(e.target.value)}
-            className="px-4 py-2 rounded bg-white border border-gray-300 text-gray-900"
-          />
+        <div className="p-6 flex flex-wrap gap-4 items-end">
+          <div>
+            <label className="block text-xs text-slate-500 font-medium mb-1">Desde</label>
+            <input
+              type="date"
+              value={desde}
+              onChange={(e) => setDesde(e.target.value)}
+              className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-500 font-medium mb-1">Hasta</label>
+            <input
+              type="date"
+              value={hasta}
+              onChange={(e) => setHasta(e.target.value)}
+              className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
+            />
+          </div>
+          <button
+            onClick={cargar}
+            disabled={loading}
+            className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg border border-slate-200 font-medium text-sm shadow-sm hover:shadow transition-all disabled:opacity-50"
+          >
+            {loading ? "Cargando..." : "Generar reporte"}
+          </button>
         </div>
-        <button
-          onClick={cargar}
-          disabled={loading}
-          className="px-4 py-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white rounded"
-        >
-          {loading ? "Cargando..." : "Generar reporte"}
-        </button>
       </div>
 
       {data && (
         <>
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={exportarExcel}
               disabled={exporting}
-              className="px-4 py-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white rounded"
+              className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg border border-slate-200 font-medium text-sm shadow-sm hover:shadow transition-all disabled:opacity-50"
             >
               {exporting ? "Exportando..." : "Exportar Excel"}
             </button>
             <button
               onClick={exportarCSV}
-              className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 rounded border border-gray-300"
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 font-medium text-sm transition-colors"
             >
               Exportar CSV
             </button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-              <p className="text-gray-500 text-sm">Ingresos</p>
-              <p className="text-xl font-bold text-sky-600">
-                ${data.totales.ingresos.toLocaleString("es-AR")}
-              </p>
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Ingresos</p>
+              <p className="text-xl font-bold text-emerald-600 tabular-nums">${data.totales.ingresos.toLocaleString("es-AR")}</p>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-              <p className="text-gray-500 text-sm">Pagos proveedores</p>
-              <p className="text-xl font-bold text-rose-600">
-                ${data.totales.pagosProveedores.toLocaleString("es-AR")}
-              </p>
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Pagos proveedores</p>
+              <p className="text-xl font-bold text-rose-600 tabular-nums">${data.totales.pagosProveedores.toLocaleString("es-AR")}</p>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-              <p className="text-gray-500 text-sm">Utileros</p>
-              <p className="text-xl font-bold text-rose-600">
-                ${data.totales.utileros.toLocaleString("es-AR")}
-              </p>
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Utileros</p>
+              <p className="text-xl font-bold text-rose-600 tabular-nums">${data.totales.utileros.toLocaleString("es-AR")}</p>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-              <p className="text-gray-500 text-sm">Caja chica</p>
-              <p className="text-xl font-bold text-gray-700">
-                ${(data.totales.cajaChica ?? 0).toLocaleString("es-AR")}
-              </p>
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Caja chica</p>
+              <p className="text-xl font-bold text-slate-700 tabular-nums">${(data.totales.cajaChica ?? 0).toLocaleString("es-AR")}</p>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-              <p className="text-gray-500 text-sm">Egresos totales</p>
-              <p className="text-xl font-bold text-rose-600">
-                ${data.totales.egresos.toLocaleString("es-AR")}
-              </p>
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Egresos totales</p>
+              <p className="text-xl font-bold text-rose-600 tabular-nums">${data.totales.egresos.toLocaleString("es-AR")}</p>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-              <p className="text-gray-500 text-sm">Balance</p>
-              <p
-                className={`text-xl font-bold ${
-                  data.totales.balance >= 0 ? "text-sky-600" : "text-rose-600"
-                }`}
-              >
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Balance</p>
+              <p className={`text-xl font-bold tabular-nums ${data.totales.balance >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                 ${data.totales.balance.toLocaleString("es-AR")}
               </p>
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-              <h3 className="p-4 font-medium text-gray-900 border-b border-gray-200">
-                Gastos por rubro
-              </h3>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
+                <h3 className="font-semibold text-white text-sm uppercase tracking-wider">Gastos por rubro</h3>
+              </div>
               <div className="p-4 space-y-2 max-h-80 overflow-y-auto">
                 {data.porRubro.length === 0 ? (
-                  <p className="text-gray-500">Sin datos</p>
+                  <p className="text-slate-500 text-sm">Sin datos</p>
                 ) : (
                   data.porRubro.map((r) => (
-                    <div
-                      key={r.rubro}
-                      className="flex justify-between py-2 border-b border-gray-200"
-                    >
-                      <span className="text-gray-700">{r.rubro}</span>
-                      <span className="text-gray-900 font-medium">
-                        ${r.total.toLocaleString("es-AR")}
-                      </span>
+                    <div key={r.rubro} className="flex justify-between items-center py-2 px-3 rounded-lg bg-slate-50 hover:bg-slate-100/80 transition-colors">
+                      <span className="text-slate-700 font-medium">{r.rubro}</span>
+                      <span className="text-slate-900 font-semibold tabular-nums">${r.total.toLocaleString("es-AR")}</span>
                     </div>
                   ))
                 )}
               </div>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-              <h3 className="p-4 font-medium text-gray-900 border-b border-gray-200">
-                Gastos por proveedor
-              </h3>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
+                <h3 className="font-semibold text-white text-sm uppercase tracking-wider">Gastos por proveedor</h3>
+              </div>
               <div className="p-4 space-y-2 max-h-80 overflow-y-auto">
                 {data.porProveedor.length === 0 ? (
-                  <p className="text-gray-500">Sin datos</p>
+                  <p className="text-slate-500 text-sm">Sin datos</p>
                 ) : (
                   data.porProveedor.map((p) => (
-                    <div
-                      key={p.proveedor}
-                      className="flex justify-between py-2 border-b border-gray-200"
-                    >
-                      <span className="text-gray-700">{p.proveedor}</span>
-                      <span className="text-gray-900 font-medium">
-                        ${p.total.toLocaleString("es-AR")}
-                      </span>
+                    <div key={p.proveedor} className="flex justify-between items-center py-2 px-3 rounded-lg bg-slate-50 hover:bg-slate-100/80 transition-colors">
+                      <span className="text-slate-700 font-medium">{p.proveedor}</span>
+                      <span className="text-slate-900 font-semibold tabular-nums">${p.total.toLocaleString("es-AR")}</span>
                     </div>
                   ))
                 )}

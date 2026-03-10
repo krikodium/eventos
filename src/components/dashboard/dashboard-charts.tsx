@@ -51,7 +51,7 @@ export function DashboardCharts({ ingresos, pagos, utileros, cajaChica }: Props)
 
   if (data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-gray-500 text-sm">
+      <div className="h-64 flex items-center justify-center text-slate-500 text-sm">
         Sin datos para mostrar
       </div>
     );
