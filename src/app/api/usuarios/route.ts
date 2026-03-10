@@ -27,7 +27,7 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         name,
-        role: role === "ADMIN" ? "ADMIN" : "EMPLEADO",
+        role: role === "ADMIN" ? "ADMIN" : "VENDEDOR",
       },
     });
     return NextResponse.json({ id: user.id, email: user.email, name: user.name, role: user.role });
