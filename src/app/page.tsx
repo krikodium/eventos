@@ -63,7 +63,7 @@ export default async function HomePage() {
         where: { id: p.proveedorId },
         include: { rubro: true },
       });
-      return { nombre: prov?.nombre ?? "-", monto: p._sum.monto ?? 0, rubro: prov?.rubro.nombre };
+      return { nombre: prov?.nombre ?? "-", monto: p._sum.monto ?? 0, rubro: prov?.rubro?.nombre ?? "-" };
     })
   );
 
