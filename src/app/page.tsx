@@ -10,71 +10,97 @@ export default async function HomePage() {
   if (!session?.user) redirect("/login");
 
   const isAdmin = session.user.role === "ADMIN";
-
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-
-  const [
-    eventosCount,
-    eventosMes,
-    eventosRecientes,
-    totalIngresos,
-    totalPagos,
-    totalUtileros,
-    totalCajaChica,
-  ] = await Promise.all([
-    prisma.evento.count(),
-    prisma.evento.count({
-      where: {
-        fecha: { gte: startOfMonth, lte: endOfMonth },
-      },
-    }),
-    prisma.evento.findMany({
-      take: 6,
-      orderBy: { fecha: "desc" },
-      include: {
-        _count: { select: { pagosProveedores: true, ingresos: true } },
-      },
-    }),
-    prisma.ingreso.aggregate({ _sum: { monto: true } }),
-    prisma.pagoProveedor.aggregate({ _sum: { monto: true } }),
-    prisma.diaUtilero.aggregate({ _sum: { monto: true } }),
-    prisma.cajaChicaEvento.aggregate({ _sum: { monto: true } }),
-  ]);
-
-  const ingresos = totalIngresos._sum.monto ?? 0;
-  const pagos = totalPagos._sum.monto ?? 0;
-  const utileros = totalUtileros._sum.monto ?? 0;
-  const cajaChica = totalCajaChica._sum.monto ?? 0;
-  const egresos = pagos + utileros + cajaChica;
-  const balance = ingresos - egresos;
-
-  const topProveedores = await prisma.pagoProveedor.groupBy({
-    by: ["proveedorId"],
-    _sum: { monto: true },
-    orderBy: { _sum: { monto: "desc" } },
-    take: 5,
-  });
-
-  const proveedoresConNombre = await Promise.all(
-    topProveedores.map(async (p) => {
-      const prov = await prisma.proveedorEvento.findUnique({
-        where: { id: p.proveedorId },
-        include: { rubro: true },
-      });
-      return { nombre: prov?.nombre ?? "-", monto: p._sum.monto ?? 0, rubro: prov?.rubro?.nombre ?? "-" };
-    })
-  );
-
   const tipos: Record<string, string> = {
     CORPORATIVO: "Corporativo",
     PARTICULAR: "Particular",
   };
 
+  let eventosCount = 0;
+  let eventosMes = 0;
+  let eventosRecientes: Awaited<ReturnType<typeof prisma.evento.findMany>> = [];
+  let ingresos = 0;
+  let pagos = 0;
+  let utileros = 0;
+  let cajaChica = 0;
+  let egresos = 0;
+  let balance = 0;
+  let proveedoresConNombre: { nombre: string; monto: number; rubro: string }[] = [];
+  let tablesReady = false;
+
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const [
+      count,
+      mes,
+      recientes,
+      totalIngresos,
+      totalPagos,
+      totalUtileros,
+      totalCajaChica,
+    ] = await Promise.all([
+      prisma.evento.count(),
+      prisma.evento.count({
+        where: { fecha: { gte: startOfMonth, lte: endOfMonth } },
+      }),
+      prisma.evento.findMany({
+        take: 6,
+        orderBy: { fecha: "desc" },
+        include: { _count: { select: { pagosProveedores: true, ingresos: true } } },
+      }),
+      prisma.ingreso.aggregate({ _sum: { monto: true } }),
+      prisma.pagoProveedor.aggregate({ _sum: { monto: true } }),
+      prisma.diaUtilero.aggregate({ _sum: { monto: true } }),
+      prisma.cajaChicaEvento.aggregate({ _sum: { monto: true } }),
+    ]);
+
+    eventosCount = count;
+    eventosMes = mes;
+    eventosRecientes = recientes;
+    ingresos = totalIngresos._sum.monto ?? 0;
+    pagos = totalPagos._sum.monto ?? 0;
+    utileros = totalUtileros._sum.monto ?? 0;
+    cajaChica = totalCajaChica._sum.monto ?? 0;
+    egresos = pagos + utileros + cajaChica;
+    balance = ingresos - egresos;
+    tablesReady = true;
+
+    const topProveedores = await prisma.pagoProveedor.groupBy({
+      by: ["proveedorId"],
+      _sum: { monto: true },
+      orderBy: { _sum: { monto: "desc" } },
+      take: 5,
+    });
+
+    proveedoresConNombre = await Promise.all(
+      topProveedores.map(async (p) => {
+        const prov = await prisma.proveedorEvento.findUnique({
+          where: { id: p.proveedorId },
+          include: { rubro: true },
+        });
+        return {
+          nombre: prov?.nombre ?? "-",
+          monto: p._sum.monto ?? 0,
+          rubro: prov?.rubro?.nombre ?? "-",
+        };
+      })
+    );
+  } catch {
+    // Tablas de Eventos no existen aún - mostrar dashboard vacío
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+      {!tablesReady && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-center text-sm text-amber-800">
+          Las tablas de Eventos no están creadas. Ejecuta{" "}
+          <code className="bg-amber-100 px-1 rounded">prisma/eventos-tables.sql</code>{" "}
+          en el SQL Editor de Neon para activar el sistema.
+        </div>
+      )}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
@@ -171,9 +197,9 @@ export default async function HomePage() {
                   {proveedoresConNombre.length === 0 ? (
                     <p className="text-gray-500 text-sm">Sin datos</p>
                   ) : (
-                    proveedoresConNombre.map((p) => (
+                    proveedoresConNombre.map((p, i) => (
                       <div
-                        key={p.nombre}
+                        key={`${p.nombre}-${i}`}
                         className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
                       >
                         <div>
