@@ -8,10 +8,17 @@ export default async function UsuariosPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/");
 
-  const usuarios = await prisma.user.findMany({
+  const users = await prisma.user.findMany({
     select: { id: true, email: true, name: true, role: true },
     orderBy: { createdAt: "desc" },
   });
+
+  const usuarios = users.map((u) => ({
+    id: u.id,
+    email: u.email,
+    name: u.name ?? "",
+    role: String(u.role),
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
