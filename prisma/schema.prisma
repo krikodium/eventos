@@ -13,14 +13,20 @@ datasource db {
 }
 
 // ========== TABLAS COMPARTIDAS (Shop) - Solo lectura del schema, no migrar ==========
+enum UserRole {
+  ADMIN
+  VENDEDOR
+  VIEWER
+}
+
 model User {
   id             String    @id @default(cuid())
-  name           String
+  name           String?
   email          String    @unique
-  password       String
+  password       String?
   emailVerified  DateTime?
   image          String?
-  role           String    @default("VENDEDOR") // ADMIN | VENDEDOR | VIEWER | EMPLEADO (Eventos)
+  role           UserRole  @default(VENDEDOR)
   horarioEntrada String?
   horarioSalida  String?
   diasTrabajo    String?

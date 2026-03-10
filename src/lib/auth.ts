@@ -4,6 +4,8 @@ import { compare } from "bcryptjs";
 import { prisma } from "./prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
+  secret: process.env.AUTH_SECRET,
   providers: [
     Credentials({
       name: "credentials",
@@ -26,8 +28,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return {
           id: user.id,
           email: user.email,
-          name: user.name,
-          role: user.role,
+          name: user.name ?? user.email,
+          role: String(user.role),
         };
       },
     }),
@@ -37,6 +39,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
@@ -44,6 +48,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.email = (token.email as string) ?? "";
+        session.user.name = (token.name as string) ?? token.email ?? "";
       }
       return session;
     },

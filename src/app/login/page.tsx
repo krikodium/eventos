@@ -20,6 +20,7 @@ function LoginForm() {
       email,
       password,
       redirect: false,
+      callbackUrl,
     });
 
     if (result?.error) {
@@ -27,8 +28,10 @@ function LoginForm() {
       return;
     }
 
-    router.push(callbackUrl);
-    router.refresh();
+    if (result?.ok) {
+      router.push(callbackUrl);
+      router.refresh();
+    }
   }
 
   return (

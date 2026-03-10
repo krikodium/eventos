@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
@@ -22,7 +23,7 @@ export default auth((req) => {
     return Response.redirect(new URL("/", req.nextUrl));
   }
 
-  return undefined;
+  return NextResponse.next();
 });
 
 export const config = {

@@ -1,0 +1,35 @@
+===============================================
+  USUARIOS DE PRUEBA - Sistema Eventos
+===============================================
+
+Para crear/inyectar estos usuarios en la BD, ejecutar:
+  npx prisma db seed
+
+(O con DATABASE_URL explícita: DATABASE_URL="tu-url" npx prisma db seed)
+
+
+-----------------------------------------------
+  ADMINISTRADOR
+-----------------------------------------------
+Email:    admin@eventos.com
+Password: admin123
+Rol:      ADMIN
+Nombre:   Administrador
+
+
+-----------------------------------------------
+  EMPLEADO
+-----------------------------------------------
+Email:    empleado@eventos.com
+Password: empleado123
+Rol:      VENDEDOR (equivale a empleado en Eventos)
+Nombre:   Empleado Demo
+
+
+===============================================
+Acceso: /login
+===============================================
+
+IMPORTANTE: Si el login falla, verifica que en .env tengas:
+  AUTH_SECRET="un-secreto-de-32-chars"
+Generar con: openssl rand -base64 32
