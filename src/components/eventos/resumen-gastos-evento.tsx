@@ -173,7 +173,7 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
                       innerRadius={40}
                       paddingAngle={2}
                       label={({ name, percent }) =>
-                        percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ""
+                        (percent ?? 0) > 0.05 ? `${name} ${((percent ?? 0) * 100).toFixed(0)}%` : ""
                       }
                       labelLine={false}
                     >
@@ -366,7 +366,7 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
                         innerRadius={50}
                         paddingAngle={2}
                         label={({ name, percent }) =>
-                          percent > 0.03 ? `${name} ${(percent * 100).toFixed(0)}%` : ""
+                          (percent ?? 0) > 0.03 ? `${name} ${((percent ?? 0) * 100).toFixed(0)}%` : ""
                         }
                         labelLine={false}
                       >
