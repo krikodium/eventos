@@ -205,10 +205,9 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
                       align="right"
                       verticalAlign="middle"
                       wrapperStyle={{ paddingLeft: 24 }}
-                      iconSize={10}
-                      iconType="square"
-                      itemGap={8}
-                      formatter={(value) => <span className="text-slate-600 text-sm">{value}</span>}
+iconSize={10}
+                        iconType="square"
+                        formatter={(value) => <span className="text-slate-600 text-sm">{value}</span>}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -395,7 +394,6 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
                         wrapperStyle={{ paddingLeft: 24 }}
                         iconSize={10}
                         iconType="square"
-                        itemGap={8}
                         formatter={(value, entry) => {
                           const monto = entry?.payload?.value ?? 0;
                           return (
