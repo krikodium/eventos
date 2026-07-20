@@ -3,6 +3,7 @@ type SendEmailInput = {
   subject: string;
   text: string;
   html?: string;
+  idempotencyKey?: string;
 };
 
 /** Envío de email vía Resend. Portado del proyecto DecoDashboard. */
@@ -17,6 +18,7 @@ export async function sendEmailResend(input: SendEmailInput) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      ...(input.idempotencyKey ? { "Idempotency-Key": input.idempotencyKey } : {}),
     },
     body: JSON.stringify({
       from,
@@ -29,7 +31,7 @@ export async function sendEmailResend(input: SendEmailInput) {
 
   if (!res.ok) {
     const msg = await res.text().catch(() => "");
-    throw new Error(`No se pudo enviar email. ${msg}`);
+    throw new Error(`No se pudo enviar email.${msg ? ` ${msg}` : ""}`);
   }
 
   return await res.json().catch(() => ({}));

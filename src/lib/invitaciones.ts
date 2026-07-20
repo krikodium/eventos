@@ -19,7 +19,7 @@ export function getBaseUrl(): string {
 }
 
 /** Escapa texto para interpolar de forma segura en el HTML del email. */
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -114,18 +114,13 @@ export async function crearYEnviarInvitacion(user: { id: string; email: string; 
   const tokenHash = hashInviteToken(token);
   const expiresAt = new Date(Date.now() + INVITACION_TTL_DIAS * 24 * 60 * 60 * 1000);
 
-  // Invalidar invitaciones pendientes previas (marcarlas usadas) y crear la nueva.
-  await prisma.$transaction([
-    prisma.eventosInvitacion.updateMany({
-      where: { userId: user.id, usedAt: null },
-      data: { usedAt: new Date() },
-    }),
-    prisma.eventosInvitacion.create({
-      data: { userId: user.id, tokenHash, expiresAt },
-    }),
-  ]);
+  // Primero conservamos cualquier enlace anterior: si el email nuevo falla,
+  // el usuario todavía puede utilizar la invitación que ya recibió.
+  const invitacion = await prisma.eventosInvitacion.create({
+    data: { userId: user.id, tokenHash, expiresAt },
+  });
 
-  const url = `${getBaseUrl()}/confirmar?token=${token}`;
+  const url = `${getBaseUrl()}/registro?token=${token}`;
   const nombre = user.name?.trim() || "equipo";
 
   const subject = "Activá tu cuenta • Eventos HC";
@@ -138,7 +133,23 @@ export async function crearYEnviarInvitacion(user: { id: string; email: string; 
 
   const html = renderInvitacionEmail({ nombre, url });
 
-  await sendEmailResend({ to: [user.email], subject, text, html });
+  try {
+    await sendEmailResend({
+      to: [user.email],
+      subject,
+      text,
+      html,
+      idempotencyKey: `invitacion-${invitacion.id}`,
+    });
+  } catch (error) {
+    await prisma.eventosInvitacion.delete({ where: { id: invitacion.id } }).catch(() => {});
+    throw error;
+  }
+
+  await prisma.eventosInvitacion.updateMany({
+    where: { userId: user.id, usedAt: null, id: { not: invitacion.id } },
+    data: { usedAt: new Date() },
+  });
 
   return { expiresAt };
 }

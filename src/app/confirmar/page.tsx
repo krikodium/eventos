@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { PasswordField } from "@/components/auth/password-field";
 
 function ConfirmarForm() {
   const router = useRouter();
@@ -54,8 +55,8 @@ function ConfirmarForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres.");
+    if (password.length < 8 || !/[a-záéíóúüñ]/.test(password) || !/[A-ZÁÉÍÓÚÜÑ]/.test(password) || !/\d/.test(password)) {
+      setError("Usá 8 o más caracteres, con mayúscula, minúscula y número.");
       return;
     }
     if (password !== confirmation) {
@@ -127,32 +128,10 @@ function ConfirmarForm() {
                 </p>
               </div>
               <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <label htmlFor="password" className="mb-1.5 block text-xs font-semibold text-neutral-600">Contraseña</label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={8}
-                    className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition hover:border-neutral-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-                    placeholder="Mínimo 8 caracteres"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="confirmation" className="mb-1.5 block text-xs font-semibold text-neutral-600">Repetir contraseña</label>
-                  <input
-                    id="confirmation"
-                    type="password"
-                    value={confirmation}
-                    onChange={(e) => setConfirmation(e.target.value)}
-                    required
-                    minLength={8}
-                    className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition hover:border-neutral-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-                  />
-                </div>
-                {error && <p className="text-rose-600 text-sm">{error}</p>}
+                <PasswordField id="password" label="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" placeholder="8+ caracteres" />
+                <PasswordField id="confirmation" label="Repetir contraseña" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} autoComplete="new-password" />
+                <p className="text-xs leading-relaxed text-neutral-500">Usá al menos una mayúscula, una minúscula y un número.</p>
+                {error && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
                 <button
                   type="submit"
                   disabled={loading}

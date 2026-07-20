@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { hashInviteToken } from "@/lib/invitaciones";
+import { validarPassword } from "@/lib/passwords";
 
 export const dynamic = "force-dynamic";
 
@@ -67,18 +68,9 @@ export async function POST(request: NextRequest) {
   const password = String(body.password ?? "");
   const confirmation = String(body.confirmation ?? "");
 
-  if (password.length < 8) {
-    return NextResponse.json(
-      { ok: false, error: "La contraseña debe tener al menos 8 caracteres." },
-      { status: 400 }
-    );
-  }
-  // bcrypt trunca a 72 bytes: rechazamos antes para evitar confusiones silenciosas.
-  if (Buffer.byteLength(password, "utf8") > 72) {
-    return NextResponse.json(
-      { ok: false, error: "La contraseña es demasiado larga (máximo 72 caracteres)." },
-      { status: 400 }
-    );
+  const passwordError = validarPassword(password);
+  if (passwordError) {
+    return NextResponse.json({ ok: false, error: passwordError }, { status: 400 });
   }
   if (password !== confirmation) {
     return NextResponse.json(
@@ -99,16 +91,17 @@ export async function POST(request: NextRequest) {
   try {
     await prisma.$transaction(async (tx) => {
       const claim = await tx.eventosInvitacion.updateMany({
-        where: { id: result.invitacionId, usedAt: null },
+        where: { id: result.invitacionId, usedAt: null, expiresAt: { gt: new Date() } },
         data: { usedAt: new Date() },
       });
       if (claim.count !== 1) {
         throw new Error("INVITACION_YA_USADA");
       }
-      await tx.user.update({
-        where: { id: result.userId },
+      const activation = await tx.user.updateMany({
+        where: { id: result.userId, password: null },
         data: { password: hashedPassword, emailVerified: new Date() },
       });
+      if (activation.count !== 1) throw new Error("INVITACION_YA_USADA");
     });
   } catch (e) {
     if (e instanceof Error && e.message === "INVITACION_YA_USADA") {
