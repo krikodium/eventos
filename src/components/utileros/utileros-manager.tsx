@@ -68,7 +68,7 @@ export function UtilerosManager() {
           Agregar
         </button>
       </form>
-      <div className="overflow-x-auto">
+      <div className="overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="text-left text-gray-600 border-b border-gray-200">

@@ -4,7 +4,16 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!session?.user?.permisos) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  const p = session.user.permisos;
+  if (
+    !p.navProveedores &&
+    !p.cargaCompromisosProveedor &&
+    !p.registrarPagosProveedorMovimiento &&
+    !p.verMovimientosProveedorDetalle
+  ) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
 
   const proveedores = await prisma.proveedorEvento.findMany({
     include: { rubro: true },

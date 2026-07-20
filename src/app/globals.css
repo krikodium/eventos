@@ -1,10 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #171717;
-  --accent: #0ea5e9;
-  --accent-hover: #0284c7;
+  --background: #f4f5f7;
+  --foreground: #14161a;
 }
 
 @theme inline {
@@ -17,4 +15,78 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes skeleton-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.skeleton-bone {
+  background-image: linear-gradient(
+    100deg,
+    rgb(226 232 240 / 0.78) 20%,
+    rgb(248 250 252 / 0.98) 38%,
+    rgb(226 232 240 / 0.78) 56%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.65s ease-in-out infinite;
+}
+
+/* El retraso evita que una navegación rápida produzca un destello de skeleton. */
+.route-skeleton {
+  animation: skeleton-reveal 240ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both;
+}
+
+main:not(.route-skeleton) {
+  animation: page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bone,
+  .route-skeleton,
+  main:not(.route-skeleton) {
+    animation: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-sidebar ~ main {
+    width: calc(100% - 16rem) !important;
+    max-width: none !important;
+    margin-left: 16rem !important;
+    margin-right: 0 !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  .app-sidebar ~ main > [class*="max-w-"] {
+    max-width: none !important;
+  }
 }

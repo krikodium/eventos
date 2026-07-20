@@ -40,17 +40,17 @@ function Fila({
   const isEmpty = value === null || value === undefined || value === "";
 
   return (
-    <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
-      <td className="py-2.5 px-4 text-slate-500 text-sm font-medium align-middle bg-slate-50/80 w-[45%]">
+    <tr className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50/50 transition-colors">
+      <td className="py-2.5 px-4 text-neutral-500 text-sm font-medium align-middle bg-neutral-50/80 w-[45%]">
         {label}
       </td>
       <td
         className={`py-2.5 px-4 text-sm align-middle ${
-          isMoneda ? "text-right font-semibold tabular-nums text-slate-900" : "text-slate-800"
+          isMoneda ? "text-right font-semibold tabular-nums text-neutral-900" : "text-neutral-800"
         }`}
       >
         {isEmpty ? (
-          <span className="text-slate-300">—</span>
+          <span className="text-neutral-300">—</span>
         ) : (
           value
         )}
@@ -81,9 +81,9 @@ export function DetallesEstadoPagos({ evento, ingresos }: Props) {
   return (
     <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:items-start">
       {/* DETALLES DEL EVENTO */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-3.5 bg-slate-800 border-b border-slate-700">
-          <h3 className="font-semibold text-white text-sm uppercase tracking-wider">
+      <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-neutral-200 bg-neutral-50">
+          <h3 className="font-semibold text-neutral-900 text-sm uppercase tracking-wider">
             Detalles del evento
           </h3>
         </div>
@@ -138,12 +138,12 @@ export function DetallesEstadoPagos({ evento, ingresos }: Props) {
       </div>
 
       {/* ESTADO DE PAGOS (Cobros a clientes) */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-3.5 bg-slate-800 border-b border-slate-700">
-          <h3 className="font-semibold text-white text-sm uppercase tracking-wider">
+      <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-neutral-200 bg-neutral-50">
+          <h3 className="font-semibold text-neutral-900 text-sm uppercase tracking-wider">
             Estado de pagos
           </h3>
-          <p className="text-slate-300 text-xs mt-0.5">Cobros a clientes</p>
+          <p className="text-neutral-500 text-xs mt-0.5">Cobros a clientes</p>
         </div>
         <table className="w-full table-fixed">
           <tbody>

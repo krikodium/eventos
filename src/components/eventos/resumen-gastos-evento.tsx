@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { cajaSentidoEsEgreso } from "@/lib/caja-chica-pesos";
 import {
   PieChart,
   Pie,
@@ -35,6 +36,7 @@ type Props = {
   }>;
   cajaChica: Array<{
     monto: number;
+    sentido?: string | null;
     empleadaEncargada: string;
     concepto: string | null;
   }>;
@@ -42,6 +44,8 @@ type Props = {
 
 const TIPOS_DIA: Record<string, string> = {
   ARMADO: "Armado",
+  ARMADO_1: "Armado 1",
+  ARMADO_2: "Armado 2",
   GUARDIA: "Guardia",
   EVENTO: "Día evento",
   DESARME_EVENTO: "Desarme evento",
@@ -60,6 +64,22 @@ const COLORS = [
 ];
 
 export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
+  const [modalAbierto, setModalAbierto] = useState(false);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalAbierto(false);
+    };
+    if (modalAbierto) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
+    };
+  }, [modalAbierto]);
+
   const movimientos: Movimiento[] = [];
 
   for (const p of pagos) {
@@ -79,6 +99,7 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
   }
 
   for (const c of cajaChica) {
+    if (!cajaSentidoEsEgreso(c.sentido)) continue;
     movimientos.push({
       proveedor: c.empleadaEncargada,
       rubro: c.concepto ?? "Caja chica",
@@ -88,11 +109,11 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
 
   if (movimientos.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">
+      <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-8">
+        <h2 className="text-lg font-semibold text-neutral-900 mb-2">
           Resumen de gastos
         </h2>
-        <p className="text-slate-500 text-sm">
+        <p className="text-neutral-500 text-sm">
           No hay movimientos registrados para este evento
         </p>
       </div>
@@ -125,29 +146,13 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
     fill: COLORS[i % COLORS.length],
   }));
 
-  const [modalAbierto, setModalAbierto] = useState(false);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setModalAbierto(false);
-    };
-    if (modalAbierto) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "";
-    };
-  }, [modalAbierto]);
-
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
-        <h2 className="text-lg font-semibold text-white">
+    <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b border-neutral-200 bg-neutral-50">
+        <h2 className="text-lg font-semibold text-neutral-900">
           Resumen de gastos por rubro y proveedor
         </h2>
-        <p className="text-slate-300 text-sm mt-0.5">
+        <p className="text-neutral-500 text-sm mt-0.5">
           Desglose de egresos por categoría y proveedor
         </p>
       </div>
@@ -156,7 +161,7 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Gráfico - columna principal */}
           <div className="lg:col-span-2">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">
+            <h3 className="text-sm font-semibold text-neutral-700 mb-4">
               Distribución por rubro
             </h3>
             <div className="relative">
@@ -186,9 +191,9 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
                         if (!active || !payload?.length) return null;
                         const { name, value } = payload[0].payload;
                         return (
-                          <div className="bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-md text-sm">
-                            <p className="font-medium text-slate-700">Rubro: {name}</p>
-                            <p className="text-slate-900 font-semibold tabular-nums">
+                          <div className="bg-white px-3 py-2 rounded-lg border border-neutral-200 shadow-md text-sm">
+                            <p className="font-medium text-neutral-700">Rubro: {name}</p>
+                            <p className="text-neutral-900 font-semibold tabular-nums">
                               Gasto total: ${value.toLocaleString("es-AR")}
                             </p>
                           </div>
@@ -207,7 +212,7 @@ export function ResumenGastosEvento({ pagos, diasUtileros, cajaChica }: Props) {
                       wrapperStyle={{ paddingLeft: 24 }}
 iconSize={10}
                         iconType="square"
-                        formatter={(value) => <span className="text-slate-600 text-sm">{value}</span>}
+                        formatter={(value) => <span className="text-neutral-600 text-sm">{value}</span>}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -215,7 +220,7 @@ iconSize={10}
               <button
                 type="button"
                 onClick={() => setModalAbierto(true)}
-                className="absolute left-0 bottom-0 w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 border border-slate-200/80 hover:border-slate-300 transition-colors duration-150"
+                className="absolute left-0 bottom-0 w-9 h-9 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-700 border border-neutral-200/80 hover:border-neutral-300 transition-colors duration-150"
                 title="Ver gráfico detallado"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="w-5 h-5 shrink-0">
@@ -229,7 +234,7 @@ iconSize={10}
           {/* Resúmenes por rubro y proveedor */}
           <div className="space-y-6">
             <div>
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">
+              <h3 className="text-sm font-semibold text-neutral-700 mb-3">
                 Por rubro
               </h3>
               <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -238,14 +243,14 @@ iconSize={10}
                   return (
                     <div
                       key={rubro}
-                      className="flex justify-between items-center py-2 px-3 rounded-lg bg-slate-50 hover:bg-slate-100/80 transition-colors"
+                      className="flex justify-between items-center py-2 px-3 rounded-lg bg-neutral-50 hover:bg-neutral-100/80 transition-colors"
                     >
-                      <span className="text-slate-700 text-sm font-medium">{rubro}</span>
+                      <span className="text-neutral-700 text-sm font-medium">{rubro}</span>
                       <div className="text-right">
-                        <span className="font-semibold text-slate-900 text-sm tabular-nums">
+                        <span className="font-semibold text-neutral-900 text-sm tabular-nums">
                           ${monto.toLocaleString("es-AR")}
                         </span>
-                        <span className="text-slate-400 text-xs ml-1.5">({pct}%)</span>
+                        <span className="text-neutral-400 text-xs ml-1.5">({pct}%)</span>
                       </div>
                     </div>
                   );
@@ -254,7 +259,7 @@ iconSize={10}
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">
+              <h3 className="text-sm font-semibold text-neutral-700 mb-3">
                 Por proveedor
               </h3>
               <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -263,16 +268,16 @@ iconSize={10}
                   return (
                     <div
                       key={proveedor}
-                      className="flex justify-between items-center py-2 px-3 rounded-lg bg-slate-50 hover:bg-slate-100/80 transition-colors"
+                      className="flex justify-between items-center py-2 px-3 rounded-lg bg-neutral-50 hover:bg-neutral-100/80 transition-colors"
                     >
-                      <span className="text-slate-700 text-sm font-medium truncate max-w-[120px]">
+                      <span className="text-neutral-700 text-sm font-medium truncate max-w-[120px]">
                         {proveedor}
                       </span>
                       <div className="text-right shrink-0">
-                        <span className="font-semibold text-slate-900 text-sm tabular-nums">
+                        <span className="font-semibold text-neutral-900 text-sm tabular-nums">
                           ${monto.toLocaleString("es-AR")}
                         </span>
-                        <span className="text-slate-400 text-xs ml-1.5">({pct}%)</span>
+                        <span className="text-neutral-400 text-xs ml-1.5">({pct}%)</span>
                       </div>
                     </div>
                   );
@@ -283,28 +288,28 @@ iconSize={10}
         </div>
 
         {/* Tabla detallada */}
-        <div className="mt-8 pt-6 border-t border-slate-200">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">
+        <div className="mt-8 pt-6 border-t border-neutral-200">
+          <h3 className="text-sm font-semibold text-neutral-700 mb-4">
             Detalle de movimientos
           </h3>
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <div className="overflow-x-auto rounded-lg border border-neutral-200">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-900 uppercase tracking-wider">
+                <tr className="bg-neutral-50 text-left text-xs font-semibold text-neutral-900 uppercase tracking-wider">
                   <th className="px-4 py-3">Proveedor</th>
                   <th className="px-4 py-3">Rubro</th>
                   <th className="px-4 py-3 text-right">Monto</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {movimientosOrdenados.map((m, i) => (
                   <tr
                     key={i}
-                    className="hover:bg-slate-50/50 transition-colors"
+                    className="hover:bg-neutral-50/50 transition-colors"
                   >
-                    <td className="px-4 py-3 font-medium text-slate-800">{m.proveedor}</td>
-                    <td className="px-4 py-3 text-slate-600">{m.rubro}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-900 tabular-nums">
+                    <td className="px-4 py-3 font-medium text-neutral-800">{m.proveedor}</td>
+                    <td className="px-4 py-3 text-neutral-600">{m.rubro}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-neutral-900 tabular-nums">
                       ${m.monto.toLocaleString("es-AR")}
                     </td>
                   </tr>
@@ -313,11 +318,11 @@ iconSize={10}
             </table>
           </div>
           <div className="mt-4 flex justify-end">
-            <div className="px-4 py-2 bg-slate-100 rounded-lg">
-              <span className="text-sm font-semibold text-slate-700">
+            <div className="px-4 py-2 bg-neutral-100 rounded-lg">
+              <span className="text-sm font-semibold text-neutral-700">
                 Total egresos:{" "}
               </span>
-              <span className="text-slate-900 font-bold tabular-nums">
+              <span className="text-neutral-900 font-bold tabular-nums">
                 ${totalEgresos.toLocaleString("es-AR")}
               </span>
             </div>
@@ -335,21 +340,21 @@ iconSize={10}
             className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 px-6 py-4 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">
+            <div className="sticky top-0 px-6 py-4 bg-neutral-50 border-b border-neutral-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-neutral-900">
                 Gráfico detallado de gastos
               </h3>
               <button
                 type="button"
                 onClick={() => setModalAbierto(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-600 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200 transition-colors"
               >
                 ✕
               </button>
             </div>
             <div className="p-6 space-y-8">
               <div>
-                <h4 className="text-sm font-semibold text-slate-700 mb-3">
+                <h4 className="text-sm font-semibold text-neutral-700 mb-3">
                   Distribución por rubro
                 </h4>
                 <div className="h-80">
@@ -378,9 +383,9 @@ iconSize={10}
                           if (!active || !payload?.length) return null;
                           const { name, value } = payload[0].payload;
                           return (
-                            <div className="bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-md text-sm">
-                              <p className="font-medium text-slate-700">Rubro: {name}</p>
-                              <p className="text-slate-900 font-semibold tabular-nums">
+                            <div className="bg-white px-3 py-2 rounded-lg border border-neutral-200 shadow-md text-sm">
+                              <p className="font-medium text-neutral-700">Rubro: {name}</p>
+                              <p className="text-neutral-900 font-semibold tabular-nums">
                                 Gasto total: ${value.toLocaleString("es-AR")}
                               </p>
                             </div>
@@ -397,9 +402,9 @@ iconSize={10}
                         formatter={(value, entry) => {
                           const monto = entry?.payload?.value ?? 0;
                           return (
-                            <span className="text-slate-600 text-sm">
+                            <span className="text-neutral-600 text-sm">
                               {value}{" "}
-                              <span className="font-semibold text-slate-900 tabular-nums">
+                              <span className="font-semibold text-neutral-900 tabular-nums">
                                 ${monto.toLocaleString("es-AR")}
                               </span>
                             </span>
@@ -411,7 +416,7 @@ iconSize={10}
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-slate-700 mb-3">
+                <h4 className="text-sm font-semibold text-neutral-700 mb-3">
                   Desglose por proveedor
                 </h4>
                 <div className="h-80 min-h-[200px]">
@@ -432,9 +437,9 @@ iconSize={10}
                           if (!active || !payload?.length) return null;
                           const { name, value } = payload[0].payload;
                           return (
-                            <div className="bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-md text-sm">
-                              <p className="font-medium text-slate-700">Proveedor: {name}</p>
-                              <p className="text-slate-900 font-semibold tabular-nums">
+                            <div className="bg-white px-3 py-2 rounded-lg border border-neutral-200 shadow-md text-sm">
+                              <p className="font-medium text-neutral-700">Proveedor: {name}</p>
+                              <p className="text-neutral-900 font-semibold tabular-nums">
                                 Gasto total: ${value.toLocaleString("es-AR")}
                               </p>
                             </div>

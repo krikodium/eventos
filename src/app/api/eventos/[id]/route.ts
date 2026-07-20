@@ -48,6 +48,9 @@ export async function PUT(
       formaPagoAcordada,
       honorariosHC,
       viaticosArmado,
+      diasArmado,
+      tipoCambioUsd,
+      cajaChicaAsignadaArs,
     } = body;
     const evento = await prisma.evento.update({
       where: { id },
@@ -67,6 +70,15 @@ export async function PUT(
         ...(formaPagoAcordada !== undefined && { formaPagoAcordada: formaPagoAcordada || null }),
         ...(honorariosHC !== undefined && { honorariosHC: honorariosHC != null ? Number(honorariosHC) : null }),
         ...(viaticosArmado !== undefined && { viaticosArmado: viaticosArmado != null ? Number(viaticosArmado) : null }),
+        ...(diasArmado !== undefined && { diasArmado: Math.min(2, Math.max(1, parseInt(diasArmado, 10) || 2)) }),
+        ...(tipoCambioUsd !== undefined && { tipoCambioUsd: tipoCambioUsd ? parseFloat(tipoCambioUsd) : null }),
+        ...(cajaChicaAsignadaArs !== undefined && {
+          cajaChicaAsignadaArs: (() => {
+            if (cajaChicaAsignadaArs == null || cajaChicaAsignadaArs === "") return null;
+            const n = Number(cajaChicaAsignadaArs);
+            return n > 0 ? n : null;
+          })(),
+        }),
       },
     });
     return NextResponse.json(evento);

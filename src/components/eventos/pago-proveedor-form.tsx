@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Select } from "@/components/ui/select";
 
 export function PagoProveedorForm({ eventoId }: { eventoId: string }) {
   const router = useRouter();
@@ -51,26 +53,35 @@ export function PagoProveedorForm({ eventoId }: { eventoId: string }) {
     }
   }
 
+  const inputClass = "px-3 py-2.5 rounded-lg bg-white border border-neutral-200 text-neutral-900 text-sm focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300 transition-colors placeholder:text-neutral-400";
+  const labelClass = "block text-xs font-medium text-neutral-600 mb-1.5";
+
+  const proveedorOptions = proveedores.map((p) => ({
+    value: p.id,
+    label: `${p.nombre} (${p.rubro.nombre})`,
+  }));
+
+  const metodoOptions = [
+    { value: "EFECTIVO", label: "Efectivo" },
+    { value: "TRANSFERENCIA", label: "Transferencia" },
+    { value: "CHEQUE", label: "Cheque" },
+    { value: "OTRO", label: "Otro" },
+  ];
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+    <form onSubmit={handleSubmit} className="flex flex-wrap gap-x-5 gap-y-4 items-end p-6 bg-white rounded-xl border border-neutral-200 shadow-sm mb-6">
       <div className="min-w-[200px]">
-        <label className="block text-xs text-gray-600 mb-1">Proveedor</label>
-        <select
+        <label className={labelClass}>Proveedor</label>
+        <Select
           value={form.proveedorId}
-          onChange={(e) => setForm({ ...form, proveedorId: e.target.value })}
+          onChange={(v) => setForm({ ...form, proveedorId: v })}
+          options={proveedorOptions}
+          placeholder="Seleccionar"
           required
-          className="w-full px-3 py-2 rounded bg-white border border-gray-300 text-gray-900 text-sm"
-        >
-          <option value="">Seleccionar</option>
-          {proveedores.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nombre} ({p.rubro.nombre})
-            </option>
-          ))}
-        </select>
+        />
       </div>
       <div>
-        <label className="block text-xs text-gray-600 mb-1">Monto</label>
+        <label className={labelClass}>Monto</label>
         <input
           type="number"
           step="0.01"
@@ -78,47 +89,43 @@ export function PagoProveedorForm({ eventoId }: { eventoId: string }) {
           onChange={(e) => setForm({ ...form, monto: e.target.value })}
           required
           placeholder="0"
-          className="w-28 px-3 py-2 rounded bg-white border border-gray-300 text-gray-900 text-sm"
+          className={`w-28 ${inputClass}`}
         />
       </div>
       <div>
-        <label className="block text-xs text-gray-600 mb-1">Fecha</label>
+        <label className={labelClass}>Fecha</label>
         <input
           type="date"
           value={form.fecha}
           onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-          className="px-3 py-2 rounded bg-white border border-gray-300 text-gray-900 text-sm"
+          className={`w-full min-w-[140px] ${inputClass}`}
         />
       </div>
-      <div>
-        <label className="block text-xs text-gray-600 mb-1">Método</label>
-        <select
+      <div className="min-w-[140px]">
+        <label className={labelClass}>Método</label>
+        <Select
           value={form.metodoPago}
-          onChange={(e) => setForm({ ...form, metodoPago: e.target.value })}
-          className="px-3 py-2 rounded bg-white border border-gray-300 text-gray-900 text-sm"
-        >
-          <option value="EFECTIVO">Efectivo</option>
-          <option value="TRANSFERENCIA">Transferencia</option>
-          <option value="CHEQUE">Cheque</option>
-          <option value="OTRO">Otro</option>
-        </select>
+          onChange={(v) => setForm({ ...form, metodoPago: v })}
+          options={metodoOptions}
+        />
       </div>
       <div className="min-w-[150px]">
-        <label className="block text-xs text-gray-600 mb-1">Concepto</label>
+        <label className={labelClass}>Concepto</label>
         <input
           type="text"
           value={form.concepto}
           onChange={(e) => setForm({ ...form, concepto: e.target.value })}
           placeholder="Opcional"
-          className="w-full px-3 py-2 rounded bg-white border border-gray-300 text-gray-900 text-sm"
+          className={`w-full ${inputClass}`}
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="px-4 py-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white rounded text-sm"
+        className="px-4 py-2.5 bg-white hover:bg-neutral-50 text-neutral-700 rounded-lg border border-neutral-200 font-medium text-sm shadow-sm hover:shadow transition-all disabled:opacity-50 flex items-center gap-2 min-w-[100px] justify-center"
       >
-        Agregar
+        {loading ? <LoadingSpinner className="h-4 w-4" /> : null}
+        {loading ? "Guardando..." : "Agregar"}
       </button>
     </form>
   );

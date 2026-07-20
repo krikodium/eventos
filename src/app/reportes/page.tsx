@@ -2,16 +2,17 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { ReportesView } from "@/components/reportes/reportes-view";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default async function ReportesPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/");
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-50">
       <Navbar />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-6">Reportes</h1>
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <PageHeader eyebrow="Análisis" title="Reportes financieros" description="Leé ingresos, costos, márgenes y distribución de gastos para tomar decisiones con contexto." status="Datos consolidados" />
         <ReportesView />
       </main>
     </div>

@@ -21,6 +21,8 @@ type Evento = {
 
 const TIPOS_LABEL: Record<string, string> = {
   ARMADO: "Armado",
+  ARMADO_1: "Armado 1",
+  ARMADO_2: "Armado 2",
   GUARDIA: "Guardia",
   EVENTO: "Día evento",
   DESARME_EVENTO: "Desarme evento",
@@ -42,7 +44,7 @@ export function UtilerosPorEvento() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-slate-500">Cargando...</p>
+        <p className="text-neutral-500">Cargando...</p>
       </div>
     );
   }
@@ -50,8 +52,8 @@ export function UtilerosPorEvento() {
   return (
     <div className="space-y-6">
       {eventos.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
-          <p className="text-slate-500 mb-4">No hay eventos</p>
+        <div className="rounded-2xl border border-neutral-200 bg-white p-12 text-center shadow-sm">
+          <p className="text-neutral-500 mb-4">No hay eventos</p>
           <Link href="/eventos/nuevo" className="text-sky-600 hover:text-sky-700 font-medium">
             Crear evento
           </Link>
@@ -70,11 +72,11 @@ export function UtilerosPorEvento() {
             );
 
             return (
-              <div key={evento.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-700 bg-slate-800 flex justify-between items-center">
+              <div key={evento.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                <div className="flex flex-col justify-between gap-4 bg-neutral-950 px-6 py-5 text-white sm:flex-row sm:items-center">
                   <div>
                     <h3 className="font-semibold text-white">{evento.nombre}</h3>
-                    <p className="text-slate-300 text-sm mt-0.5">
+                    <p className="mt-1 text-sm text-neutral-400">
                       {evento.cliente} •{" "}
                       {new Date(evento.fecha).toLocaleDateString("es-AR", {
                         day: "2-digit",
@@ -89,7 +91,7 @@ export function UtilerosPorEvento() {
                     </span>
                     <Link
                       href={`/eventos/${evento.id}`}
-                      className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-600 rounded-lg transition-colors"
+                      className="rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-200 transition hover:bg-white/15 hover:text-white"
                     >
                       Cargar datos →
                     </Link>
@@ -98,35 +100,36 @@ export function UtilerosPorEvento() {
                 <div className="p-6">
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                     {Object.entries(porTipo).map(([tipo, monto]) => (
-                      <div key={tipo} className="rounded-lg bg-slate-50 p-3 border border-slate-100">
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+                      <div key={tipo} className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
+                        <p className="text-xs text-neutral-500 font-medium uppercase tracking-wider">
                           {TIPOS_LABEL[tipo] ?? tipo}
                         </p>
-                        <p className="text-sm font-semibold text-slate-900 tabular-nums">
+                        <p className="text-sm font-semibold text-neutral-900 tabular-nums">
                           ${monto.toLocaleString("es-AR")}
                         </p>
                       </div>
                     ))}
                     {Object.keys(porTipo).length === 0 && (
-                      <p className="text-slate-500 text-sm col-span-2">Sin días cargados</p>
+                      <p className="text-neutral-500 text-sm col-span-2">Sin días cargados</p>
                     )}
                   </div>
                   <div className="space-y-2">
                     {evento.diasUtileros.slice(0, 5).map((d) => (
                       <div
                         key={d.id}
-                        className="flex justify-between text-sm py-2 px-3 rounded-lg bg-slate-50 hover:bg-slate-100/80 transition-colors"
+                        className="flex justify-between text-sm py-2 px-3 rounded-lg bg-neutral-50 hover:bg-neutral-100/80 transition-colors"
                       >
-                        <span className="text-slate-700">
-                          {d.utilero.nombre} — {TIPOS_LABEL[d.tipo ?? "EVENTO"]} ({d.dias} día{d.dias !== 1 ? "s" : ""})
+                        <span className="text-neutral-700">
+                          {d.utilero.nombre} — {TIPOS_LABEL[d.tipo ?? "EVENTO"]}
+                          {(d.tipo === "ARMADO" || d.tipo === "ARMADO_1" || d.tipo === "ARMADO_2" || d.tipo === "EVENTO") && ` (${d.dias} día${d.dias !== 1 ? "s" : ""})`}
                         </span>
-                        <span className="font-semibold text-slate-900 tabular-nums">
+                        <span className="font-semibold text-neutral-900 tabular-nums">
                           ${d.monto.toLocaleString("es-AR")}
                         </span>
                       </div>
                     ))}
                     {evento.diasUtileros.length > 5 && (
-                      <p className="text-slate-500 text-sm pt-2">+{evento.diasUtileros.length - 5} más</p>
+                      <p className="text-neutral-500 text-sm pt-2">+{evento.diasUtileros.length - 5} más</p>
                     )}
                   </div>
                 </div>
