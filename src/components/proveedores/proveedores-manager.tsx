@@ -33,16 +33,14 @@ export function ProveedoresManager() {
     ]).then(([r, p]) => {
       setRubros(r);
       setProveedores(p);
-      if (r.length > 0 && !nuevoProveedor.rubroId) {
-        setNuevoProveedor((prev) => ({ ...prev, rubroId: r[0].id }));
-      }
     });
   }, []);
 
   useEffect(() => {
-    if (rubros.length > 0 && !nuevoProveedor.rubroId) {
-      setNuevoProveedor((prev) => ({ ...prev, rubroId: rubros[0].id }));
-    }
+    if (rubros.length === 0) return;
+    setNuevoProveedor((prev) =>
+      prev.rubroId ? prev : { ...prev, rubroId: rubros[0].id }
+    );
   }, [rubros]);
 
   async function agregarRubro(e: React.FormEvent) {
@@ -93,20 +91,20 @@ export function ProveedoresManager() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2 border-b border-slate-200">
+    <div className="space-y-5">
+      <div className="inline-flex gap-1 rounded-xl border border-neutral-200 bg-white p-1 shadow-sm">
         <button
           onClick={() => setTab("proveedores")}
-          className={`px-5 py-3.5 text-sm font-medium transition-colors ${
-            tab === "proveedores" ? "text-sky-600 border-b-2 border-sky-600 bg-sky-50/30" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50/50"
+          className={`rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors ${
+            tab === "proveedores" ? "bg-neutral-950 text-white shadow-sm" : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800"
           }`}
         >
           Proveedores
         </button>
         <button
           onClick={() => setTab("rubros")}
-          className={`px-5 py-3.5 text-sm font-medium transition-colors ${
-            tab === "rubros" ? "text-sky-600 border-b-2 border-sky-600 bg-sky-50/30" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50/50"
+          className={`rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors ${
+            tab === "rubros" ? "bg-neutral-950 text-white shadow-sm" : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800"
           }`}
         >
           Rubros
@@ -114,10 +112,11 @@ export function ProveedoresManager() {
       </div>
 
       {tab === "rubros" && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
-            <h2 className="font-semibold text-white text-sm uppercase tracking-wider">Agregar rubro</h2>
-            <p className="text-slate-300 text-xs mt-0.5">Categorías para clasificar proveedores</p>
+        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+          <div className="border-b border-neutral-100 px-6 py-5">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Clasificación</p>
+            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Agregar rubro</h2>
+            <p className="mt-1 text-sm text-neutral-500">Categorías para clasificar proveedores.</p>
           </div>
           <div className="p-6">
             <form onSubmit={agregarRubro} className="flex gap-4 mb-6">
@@ -126,19 +125,19 @@ export function ProveedoresManager() {
                 value={nuevoRubro}
                 onChange={(e) => setNuevoRubro(e.target.value)}
                 placeholder="Ej: Catering, Música..."
-                className="flex-1 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
+                className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg border border-slate-200 font-medium text-sm shadow-sm hover:shadow transition-all disabled:opacity-50"
+                className="rounded-xl bg-neutral-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50"
               >
                 Agregar
               </button>
             </form>
             <div className="space-y-2">
               {rubros.map((r) => (
-                <div key={r.id} className="py-2 px-3 rounded-lg bg-slate-50 hover:bg-slate-100/80 text-slate-700 font-medium">
+                <div key={r.id} className="py-2 px-3 rounded-lg bg-neutral-50 hover:bg-neutral-100/80 text-neutral-700 font-medium">
                   {r.nombre}
                 </div>
               ))}
@@ -148,10 +147,11 @@ export function ProveedoresManager() {
       )}
 
       {tab === "proveedores" && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
-            <h2 className="font-semibold text-white text-sm uppercase tracking-wider">Agregar proveedor</h2>
-            <p className="text-slate-300 text-xs mt-0.5">Registra proveedores y asígnales un rubro</p>
+        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+          <div className="border-b border-neutral-100 px-6 py-5">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Directorio</p>
+            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Agregar proveedor</h2>
+            <p className="mt-1 text-sm text-neutral-500">Registrá proveedores y asignales un rubro.</p>
           </div>
           <div className="p-6">
             <form onSubmit={agregarProveedor} className="flex flex-wrap gap-4 mb-6">
@@ -160,12 +160,12 @@ export function ProveedoresManager() {
                 value={nuevoProveedor.nombre}
                 onChange={(e) => setNuevoProveedor({ ...nuevoProveedor, nombre: e.target.value })}
                 placeholder="Nombre del proveedor"
-                className="min-w-[200px] px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
+                className="min-w-[200px] px-4 py-2 rounded-lg bg-white border border-neutral-200 text-neutral-900"
               />
               <select
                 value={nuevoProveedor.rubroId}
                 onChange={(e) => setNuevoProveedor({ ...nuevoProveedor, rubroId: e.target.value })}
-                className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
+                className="px-4 py-2 rounded-lg bg-white border border-neutral-200 text-neutral-900"
               >
                 {rubros.map((r) => (
                   <option key={r.id} value={r.id}>{r.nombre}</option>
@@ -176,31 +176,31 @@ export function ProveedoresManager() {
                 value={nuevoProveedor.contacto}
                 onChange={(e) => setNuevoProveedor({ ...nuevoProveedor, contacto: e.target.value })}
                 placeholder="Contacto (opcional)"
-                className="min-w-[150px] px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
+                className="min-w-[150px] px-4 py-2 rounded-lg bg-white border border-neutral-200 text-neutral-900"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg border border-slate-200 font-medium text-sm shadow-sm hover:shadow transition-all disabled:opacity-50"
+                className="rounded-xl bg-neutral-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50"
               >
                 Agregar
               </button>
             </form>
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <div className="overflow-x-auto rounded-xl border border-neutral-200">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs font-semibold text-slate-900 uppercase tracking-wider bg-slate-50">
+                  <tr className="text-left text-xs font-semibold text-neutral-900 uppercase tracking-wider bg-neutral-50">
                     <th className="py-3 px-4">Nombre</th>
                     <th className="py-3 px-4">Rubro</th>
                     <th className="py-3 px-4">Contacto</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {proveedores.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-3 px-4 font-medium text-slate-800">{p.nombre}</td>
-                      <td className="py-3 px-4 text-slate-600">{p.rubro.nombre}</td>
-                      <td className="py-3 px-4 text-slate-500">{p.contacto ?? "—"}</td>
+                    <tr key={p.id} className="hover:bg-neutral-50/50 transition-colors">
+                      <td className="py-3 px-4 font-medium text-neutral-800">{p.nombre}</td>
+                      <td className="py-3 px-4 text-neutral-600">{p.rubro.nombre}</td>
+                      <td className="py-3 px-4 text-neutral-500">{p.contacto ?? "—"}</td>
                     </tr>
                   ))}
                 </tbody>

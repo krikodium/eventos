@@ -18,59 +18,58 @@ type Props = {
   cajaChica: number;
 };
 
-const COLORS = {
-  ingresos: "#0ea5e9",
-  pagos: "#f43f5e",
-  utileros: "#fb923c",
-  cajaChica: "#64748b",
-};
+const FILLS = ["#171717", "#525252", "#a3a3a3", "#d4d4d4"];
 
 export function DashboardCharts({ ingresos, pagos, utileros, cajaChica }: Props) {
   const data = [
-    {
-      name: "Ingresos",
-      value: ingresos,
-      fill: COLORS.ingresos,
-    },
-    {
-      name: "Pagos proveedores",
-      value: pagos,
-      fill: COLORS.pagos,
-    },
-    {
-      name: "Utileros",
-      value: utileros,
-      fill: COLORS.utileros,
-    },
-    {
-      name: "Caja chica",
-      value: cajaChica,
-      fill: COLORS.cajaChica,
-    },
+    { name: "Ingresos", value: ingresos },
+    { name: "Proveedores", value: pagos },
+    { name: "Utileros", value: utileros },
+    { name: "Caja chica", value: cajaChica },
   ].filter((d) => d.value > 0);
 
   if (data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-slate-500 text-sm">
+      <div className="h-56 flex items-center justify-center text-neutral-400 text-sm">
         Sin datos para mostrar
       </div>
     );
   }
 
   return (
-    <div className="h-64">
+    <div className="h-56">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ top: 5, right: 20, left: 80 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-          <XAxis type="number" tickFormatter={(v) => `$${v.toLocaleString("es-AR")}`} />
-          <YAxis type="category" dataKey="name" width={75} tick={{ fontSize: 12 }} />
+        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" horizontal={false} />
+          <XAxis
+            type="number"
+            tickFormatter={(v) => `$${v.toLocaleString("es-AR")}`}
+            tick={{ fontSize: 11, fill: "#a3a3a3" }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={80}
+            tick={{ fontSize: 11, fill: "#737373" }}
+            axisLine={false}
+            tickLine={false}
+          />
           <Tooltip
             formatter={(value: number | undefined) => [`$${(value ?? 0).toLocaleString("es-AR")}`, ""]}
-            contentStyle={{ fontSize: 12 }}
+            contentStyle={{
+              fontSize: 12,
+              background: "#fff",
+              border: "1px solid #e5e5e5",
+              borderRadius: 6,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            }}
+            cursor={{ fill: "rgba(0,0,0,0.02)" }}
           />
-          <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-            {data.map((entry, i) => (
-              <Cell key={i} fill={entry.fill} />
+          <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={20}>
+            {data.map((_, i) => (
+              <Cell key={i} fill={FILLS[i % FILLS.length]} />
             ))}
           </Bar>
         </BarChart>

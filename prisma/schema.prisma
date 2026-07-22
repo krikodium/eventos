@@ -1,7 +1,7 @@
 // Prisma schema - Sistema de Gestión de Eventos Privados
 // BD compartida con Shop y Deco (Neon PostgreSQL)
 // NO ejecutar prisma migrate deploy - Shop gestiona las migraciones.
-// Las tablas de Eventos se crean con eventos-tables.sql
+// Tablas base: prisma/eventos-tables.sql | Alinear columnas con el client: prisma/eventos-sync-schema.sql
 
 generator client {
   provider = "prisma-client-js"
@@ -20,30 +20,47 @@ enum UserRole {
 }
 
 model User {
-  id             String    @id @default(cuid())
-  name           String?
-  email          String    @unique
-  password       String?
-  emailVerified  DateTime?
-  image          String?
-  role           UserRole  @default(VENDEDOR)
-  horarioEntrada String?
-  horarioSalida  String?
-  diasTrabajo    String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  name            String?
+  email           String    @unique
+  password        String?
+  emailVerified   DateTime?
+  image           String?
+  role            UserRole  @default(VENDEDOR)
+  horarioEntrada  String?
+  horarioSalida   String?
+  diasTrabajo     String?
+  /// Permisos UI/API del módulo Eventos (JSON). null = defaults por rol.
+  eventosPermisos Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  invitaciones EventosInvitacion[]
 }
 
 // ========== TABLAS PROPIAS DE EVENTOS - Usar eventos-tables.sql para crearlas ==========
 
+/// Invitaciones con confirmación de email. Crear tabla con prisma/eventos-migration-invitaciones.sql
+model EventosInvitacion {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
 model Evento {
-  id                   String   @id @default(cuid())
+  id                   String    @id @default(cuid())
   nombre               String
   fecha                DateTime
   fechaFin             DateTime?
-  tipo                 String   // CORPORATIVO | PARTICULAR
+  tipo                 String // CORPORATIVO | PARTICULAR
   cliente              String
-  estado               String   @default("BORRADOR") // BORRADOR | CONFIRMADO | EN_CURSO | FINALIZADO | FACTURADO
+  estado               String    @default("BORRADOR") // BORRADOR | CONFIRMADO | EN_CURSO | FINALIZADO | FACTURADO
   descripcion          String?
   organizadora         String?
   provincia            String?
@@ -53,18 +70,43 @@ model Evento {
   formaPagoAcordada    String?
   honorariosHC         Float?
   viaticosArmado       Float?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  diasArmado           Int       @default(2) // 1 o 2 días de armado
+  tipoCambioUsd        Float? // Cotización USD->ARS para pase a pesos (flujo de fondos)
+  cajaChicaAsignadaArs Float? // Legado / opcional; la caja se maneja solo con movimientos ingreso–egreso
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   pagosProveedores PagoProveedor[]
   diasUtileros     DiaUtilero[]
+  utilerosEnEvento UtileroEnEvento[]
   ingresos         Ingreso[]
   cajaChica        CajaChicaEvento[]
 }
 
+model Presupuesto {
+  id                 String   @id @default(cuid())
+  empresa            String?
+  cliente            String
+  evento             String
+  fecha              DateTime
+  validez            Int      @default(15)
+  presupuestoNro     String?
+  formaPago          String?
+  total              Float
+  items              Json
+  estadoEvento       String   @default("BORRADOR")
+  honorariosTipo     String   @default("PORCENTAJE")
+  honorariosMonto    Float    @default(0)
+  honorariosConcepto String   @default("Honorarios HC")
+  cargasSocialesPct  Float    @default(0)
+  impuestosPct       Float    @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 model Rubro {
-  id          String   @id @default(cuid())
-  nombre      String   @unique
+  id          String            @id @default(cuid())
+  nombre      String            @unique
   proveedores ProveedorEvento[]
   pagos       PagoProveedor[]
 }
@@ -96,35 +138,65 @@ model PagoProveedor {
   monto        Float
   fecha        DateTime
   concepto     String?
-  metodoPago   String          @default("TRANSFERENCIA") // EFECTIVO | TRANSFERENCIA | CHEQUE | OTRO
+  metodoPago   String          @default("TRANSF_ARS") // EFECTIVO_USD | EFECTIVO_ARS | TRANSF_ARS | TRANSF_USD
   createdAt    DateTime        @default(now())
+  /// COMPROMISO = cotización / monto total acordado (carga empleada). MOVIMIENTO = pago registrado (admin).
+  rol          String          @default("MOVIMIENTO")
+  compromisoId String?
+  compromiso   PagoProveedor?  @relation("CompromisoPagos", fields: [compromisoId], references: [id], onDelete: Restrict)
+  pagosHijos   PagoProveedor[] @relation("CompromisoPagos")
 
   @@index([eventoId])
   @@index([proveedorId])
+  @@index([compromisoId])
 }
 
 model Utilero {
-  id             String       @id @default(cuid())
-  nombre         String
-  tarifaPorDia   Float
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                  String   @id @default(cuid())
+  nombre              String
+  tarifaPorDia        Float // Día evento (legacy / referencia)
+  tarifaArmado        Float? // Precio por tarea armado (1 o 2 días = mismo precio)
+  tarifaDesarmeEvento Float? // Precio por tarea desarme en evento
+  tarifaDesarmeDepo   Float? // Precio por tarea desarme en depósito
+  tarifaGuardia       Float? // Precio por tarea día de guardia
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   diasTrabajados DiaUtilero[]
+  enEventos      UtileroEnEvento[]
 }
 
 model DiaUtilero {
-  id        String   @id @default(cuid())
-  eventoId  String
-  evento    Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
-  utileroId String
-  utilero   Utilero  @relation(fields: [utileroId], references: [id])
-  tipo      String   @default("EVENTO") // ARMADO | GUARDIA | DESARME_EVENTO | DESARME_DEPO | EVENTO
-  dias      Float
-  monto     Float
-  createdAt DateTime @default(now())
+  id                 String   @id @default(cuid())
+  eventoId           String
+  evento             Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  utileroId          String
+  utilero            Utilero  @relation(fields: [utileroId], references: [id])
+  tipo               String   @default("EVENTO") // ARMADO_1 | ARMADO_2 | GUARDIA | DESARME_EVENTO | DESARME_DEPO | EVENTO
+  dias               Float // Para EVENTO: días; otros: 1
+  monto              Float // Precio por tarea (editable)
+  montoTransferencia Float? // Legacy
+  montoEfectivo      Float? // Legacy
+  createdAt          DateTime @default(now())
 
   @@unique([eventoId, utileroId, tipo])
+  @@index([eventoId])
+}
+
+model UtileroEnEvento {
+  id                  String   @id @default(cuid())
+  eventoId            String
+  evento              Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  utileroId           String
+  utilero             Utilero  @relation(fields: [utileroId], references: [id])
+  anticipo            Float    @default(0)
+  montoTransferencia  Float?
+  metodoTransferencia String? // TRANSF_ARS | TRANSF_USD
+  montoEfectivo       Float?
+  metodoEfectivo      String? // EFECTIVO_ARS | EFECTIVO_USD
+  createdAt           DateTime @default(now())
+
+  @@unique([eventoId, utileroId])
   @@index([eventoId])
 }
 
@@ -133,6 +205,8 @@ model CajaChicaEvento {
   eventoId          String
   evento            Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
   monto             Float
+  sentido           String   @default("EGRESO") // INGRESO (entra a caja) | EGRESO (sale de caja)
+  metodoPago        String   @default("EFECTIVO_ARS") // EFECTIVO_USD | EFECTIVO_ARS | TRANSF_ARS | TRANSF_USD
   empleadaEncargada String
   concepto          String?
   fecha             DateTime @default(now())
@@ -142,15 +216,16 @@ model CajaChicaEvento {
 }
 
 model Ingreso {
-  id             String   @id @default(cuid())
-  eventoId       String
-  evento         Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
-  monto          Float
-  concepto       String?
-  fecha          DateTime
-  tipo           String   @default("FACTURACION") // FACTURACION | ANTICIPO | PAGO_PARCIAL
-  numeroFactura  String?
-  createdAt      DateTime @default(now())
+  id            String   @id @default(cuid())
+  eventoId      String
+  evento        Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  monto         Float
+  metodoPago    String   @default("TRANSF_ARS") // EFECTIVO_USD | EFECTIVO_ARS | TRANSF_ARS | TRANSF_USD
+  concepto      String?
+  fecha         DateTime
+  tipo          String   @default("FACTURACION") // FACTURACION | ANTICIPO | PAGO_PARCIAL
+  numeroFactura String?
+  createdAt     DateTime @default(now())
 
   @@index([eventoId])
 }

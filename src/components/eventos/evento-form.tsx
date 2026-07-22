@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Select } from "@/components/ui/select";
 
 type EventoFormProps = {
   evento?: {
@@ -28,6 +30,7 @@ export function EventoForm({ evento }: EventoFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [detallesAbierto, setDetallesAbierto] = useState(!!evento);
   const [form, setForm] = useState({
     nombre: evento?.nombre ?? "",
     fecha: evento?.fecha?.slice(0, 10) ?? "",
@@ -88,199 +91,224 @@ export function EventoForm({ evento }: EventoFormProps) {
     }
   }
 
+  const inputClass = "w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100";
+  const labelClass = "mb-1.5 block text-xs font-semibold text-neutral-600";
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
-        <h2 className="font-semibold text-white text-sm uppercase tracking-wider">
+    <form onSubmit={handleSubmit} className="w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+      <div className="border-b border-neutral-100 px-5 py-5 sm:px-6">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Información principal</p>
+        <h2 className="text-lg font-semibold tracking-tight text-neutral-900">
           {evento ? "Editar evento" : "Nuevo evento"}
         </h2>
-        <p className="text-slate-300 text-xs mt-0.5">Completa los datos del evento</p>
-      </div>
-      <div className="p-6 space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
-        <input
-          type="text"
-          value={form.nombre}
-          onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-          required
-          className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Fecha</label>
-          <input
-            type="date"
-            value={form.fecha}
-            onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-            required
-            className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Fecha fin (opcional)</label>
-          <input
-            type="date"
-            value={form.fechaFin}
-            onChange={(e) => setForm({ ...form, fechaFin: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
-          <select
-            value={form.tipo}
-            onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-          >
-            <option value="CORPORATIVO">Corporativo</option>
-            <option value="PARTICULAR">Particular</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Estado</label>
-          <select
-            value={form.estado}
-            onChange={(e) => setForm({ ...form, estado: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-          >
-            <option value="BORRADOR">Borrador</option>
-            <option value="CONFIRMADO">Confirmado</option>
-            <option value="EN_CURSO">En curso</option>
-            <option value="FINALIZADO">Finalizado</option>
-            <option value="FACTURADO">Facturado</option>
-          </select>
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Cliente</label>
-        <input
-          type="text"
-          value={form.cliente}
-          onChange={(e) => setForm({ ...form, cliente: e.target.value })}
-          required
-          className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
-        <textarea
-          value={form.descripcion}
-          onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-          rows={2}
-          className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-        />
+        <p className="mt-1 text-sm text-neutral-500">Datos comerciales, fechas y estado operativo.</p>
       </div>
 
-      <div className="border-t border-slate-200 pt-4 mt-6">
-        <h4 className="text-sm font-semibold text-slate-900 mb-3">Detalles adicionales</h4>
+      <div className="space-y-5 p-5 sm:p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
+            <label className={labelClass}>Nombre del evento</label>
+            <input
+              type="text"
+              value={form.nombre}
+              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+              required
+              placeholder="Ej: Boda Juan y María"
+              className={inputClass}
+            />
+          </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Organizadora</label>
+            <label className={labelClass}>Cliente</label>
+            <input
+              type="text"
+              value={form.cliente}
+              onChange={(e) => setForm({ ...form, cliente: e.target.value })}
+              required
+              placeholder="Nombre del cliente"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Organizadora</label>
             <input
               type="text"
               value={form.organizadora}
               onChange={(e) => setForm({ ...form, organizadora: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
               placeholder="Ej: Azares"
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Provincia</label>
+            <label className={labelClass}>Fecha</label>
             <input
-              type="text"
-              value={form.provincia}
-              onChange={(e) => setForm({ ...form, provincia: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-              placeholder="Ej: Buenos Aires"
+              type="date"
+              value={form.fecha}
+              onChange={(e) => setForm({ ...form, fecha: e.target.value })}
+              required
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Localidad</label>
+            <label className={labelClass}>Fecha fin</label>
             <input
-              type="text"
-              value={form.localidad}
-              onChange={(e) => setForm({ ...form, localidad: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-              placeholder="Ej: Baradero"
+              type="date"
+              value={form.fechaFin}
+              onChange={(e) => setForm({ ...form, fechaFin: e.target.value })}
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Presupuesto total</label>
-            <input
-              type="number"
-              step="0.01"
-              value={form.presupuestoTotal}
-              onChange={(e) => setForm({ ...form, presupuestoTotal: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-              placeholder="0"
+            <label className={labelClass}>Tipo</label>
+            <Select
+              value={form.tipo}
+              onChange={(v) => setForm({ ...form, tipo: v })}
+              options={[
+                { value: "CORPORATIVO", label: "Corporativo" },
+                { value: "PARTICULAR", label: "Particular" },
+              ]}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Presupuesto Nº</label>
-            <input
-              type="text"
-              value={form.presupuestoNro}
-              onChange={(e) => setForm({ ...form, presupuestoNro: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-              placeholder="Ej: 06"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-1">Forma de pago acordada</label>
-            <input
-              type="text"
-              value={form.formaPagoAcordada}
-              onChange={(e) => setForm({ ...form, formaPagoAcordada: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-              placeholder="Ej: 30% fact / saldo eft"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Honorarios HC</label>
-            <input
-              type="number"
-              step="0.01"
-              value={form.honorariosHC}
-              onChange={(e) => setForm({ ...form, honorariosHC: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-              placeholder="0"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Viáticos armado</label>
-            <input
-              type="number"
-              step="0.01"
-              value={form.viaticosArmado}
-              onChange={(e) => setForm({ ...form, viaticosArmado: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-900"
-              placeholder="0"
+            <label className={labelClass}>Estado</label>
+            <Select
+              value={form.estado}
+              onChange={(v) => setForm({ ...form, estado: v })}
+              options={[
+                { value: "BORRADOR", label: "Borrador" },
+                { value: "CONFIRMADO", label: "Confirmado" },
+                { value: "EN_CURSO", label: "En curso" },
+                { value: "FINALIZADO", label: "Finalizado" },
+                { value: "FACTURADO", label: "Facturado" },
+              ]}
             />
           </div>
         </div>
-      </div>
 
-      {error && <p className="text-rose-600 text-sm">{error}</p>}
-      <div className="flex gap-4 pt-2">
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg border border-slate-200 font-medium text-sm shadow-sm hover:shadow transition-all disabled:opacity-50"
-        >
-          {loading ? "Guardando..." : evento ? "Actualizar" : "Crear"}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 font-medium text-sm transition-colors"
-        >
-          Cancelar
-        </button>
-      </div>
+        <div>
+          <label className={labelClass}>Descripción</label>
+          <textarea
+            value={form.descripcion}
+            onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+            rows={2}
+            placeholder="Detalles del evento (opcional)"
+            className={`${inputClass} resize-none`}
+          />
+        </div>
+
+        {/* Detalles adicionales - acordeón */}
+        <div className="border-t border-neutral-200 pt-4">
+          <button
+            type="button"
+            onClick={() => setDetallesAbierto(!detallesAbierto)}
+            className="flex items-center gap-2 text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors w-full"
+          >
+            <svg
+              className={`w-4 h-4 text-neutral-500 transition-transform ${detallesAbierto ? "rotate-90" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            Ubicación, presupuesto y pagos
+          </button>
+          {detallesAbierto && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>Provincia</label>
+                <input
+                  type="text"
+                  value={form.provincia}
+                  onChange={(e) => setForm({ ...form, provincia: e.target.value })}
+                  placeholder="Ej: Buenos Aires"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Localidad</label>
+                <input
+                  type="text"
+                  value={form.localidad}
+                  onChange={(e) => setForm({ ...form, localidad: e.target.value })}
+                  placeholder="Ej: Baradero"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Presupuesto total</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={form.presupuestoTotal}
+                  onChange={(e) => setForm({ ...form, presupuestoTotal: e.target.value })}
+                  placeholder="0"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Presupuesto Nº</label>
+                <input
+                  type="text"
+                  value={form.presupuestoNro}
+                  onChange={(e) => setForm({ ...form, presupuestoNro: e.target.value })}
+                  placeholder="Ej: 06"
+                  className={inputClass}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelClass}>Forma de pago acordada</label>
+                <input
+                  type="text"
+                  value={form.formaPagoAcordada}
+                  onChange={(e) => setForm({ ...form, formaPagoAcordada: e.target.value })}
+                  placeholder="Ej: 30% fact / saldo eft"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Honorarios HC</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={form.honorariosHC}
+                  onChange={(e) => setForm({ ...form, honorariosHC: e.target.value })}
+                  placeholder="0"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Viáticos armado</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={form.viaticosArmado}
+                  onChange={(e) => setForm({ ...form, viaticosArmado: e.target.value })}
+                  placeholder="0"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {error && <p className="text-rose-600 text-sm">{error}</p>}
+        <div className="flex gap-3 pt-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:opacity-50"
+          >
+            {loading ? <LoadingSpinner className="h-4 w-4" /> : null}
+            {loading ? "Guardando..." : evento ? "Actualizar" : "Crear evento"}
+          </button>
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-4 py-2 text-neutral-600 hover:text-neutral-900 text-sm font-medium"
+          >
+            Cancelar
+          </button>
+        </div>
       </div>
     </form>
   );

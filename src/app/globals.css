@@ -1,20 +1,124 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #171717;
-  --accent: #0ea5e9;
-  --accent-hover: #0284c7;
+  --background: #f5f3ee;
+  --foreground: #191918;
+  --surface: #fbfaf7;
+  --border-subtle: #dedbd3;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-border-subtle: var(--border-subtle);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * Paleta principal inspirada en el panel administrativo de referencia.
+   * Conservamos los nombres sky/cyan para no duplicar estilos en todos los
+   * componentes, pero su representación visual es gris cálida y carbón.
+   */
+  --color-sky-50: #f4f3f0;
+  --color-sky-100: #e9e7e2;
+  --color-sky-200: #d7d4cd;
+  --color-sky-300: #bbb8b1;
+  --color-sky-400: #92918d;
+  --color-sky-500: #686866;
+  --color-sky-600: #484847;
+  --color-sky-700: #343433;
+  --color-sky-800: #272726;
+  --color-sky-900: #1d1d1c;
+  --color-sky-950: #121211;
+  --color-cyan-50: #f4f3f0;
+  --color-cyan-100: #e9e7e2;
+  --color-cyan-200: #d7d4cd;
+  --color-cyan-300: #bbb8b1;
+  --color-cyan-400: #92918d;
+  --color-cyan-500: #686866;
+  --color-cyan-600: #484847;
+  --color-cyan-700: #343433;
+  --color-cyan-800: #272726;
+  --color-cyan-900: #1d1d1c;
+  --color-cyan-950: #121211;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes skeleton-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.skeleton-bone {
+  background-image: linear-gradient(
+    100deg,
+    rgb(226 232 240 / 0.78) 20%,
+    rgb(248 250 252 / 0.98) 38%,
+    rgb(226 232 240 / 0.78) 56%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.65s ease-in-out infinite;
+}
+
+/* El retraso evita que una navegación rápida produzca un destello de skeleton. */
+.route-skeleton {
+  animation: skeleton-reveal 240ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both;
+}
+
+main:not(.route-skeleton) {
+  animation: page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bone,
+  .route-skeleton,
+  main:not(.route-skeleton) {
+    animation: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-sidebar ~ main {
+    width: calc(100% - 16rem) !important;
+    max-width: none !important;
+    margin-left: 16rem !important;
+    margin-right: 0 !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  .app-sidebar ~ main > [class*="max-w-"] {
+    max-width: none !important;
+  }
 }

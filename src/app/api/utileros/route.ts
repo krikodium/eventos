@@ -17,12 +17,19 @@ export async function POST(req: Request) {
   }
   try {
     const body = await req.json();
-    const { nombre, tarifaPorDia } = body;
+    const { nombre, tarifaPorDia, tarifaArmado, tarifaDesarmeEvento, tarifaDesarmeDepo, tarifaGuardia } = body;
     if (!nombre || tarifaPorDia == null) {
       return NextResponse.json({ error: "Faltan nombre o tarifa" }, { status: 400 });
     }
     const utilero = await prisma.utilero.create({
-      data: { nombre, tarifaPorDia: parseFloat(tarifaPorDia) },
+      data: {
+        nombre,
+        tarifaPorDia: parseFloat(tarifaPorDia),
+        tarifaArmado: tarifaArmado != null && tarifaArmado !== "" ? parseFloat(tarifaArmado) : null,
+        tarifaDesarmeEvento: tarifaDesarmeEvento != null && tarifaDesarmeEvento !== "" ? parseFloat(tarifaDesarmeEvento) : null,
+        tarifaDesarmeDepo: tarifaDesarmeDepo != null && tarifaDesarmeDepo !== "" ? parseFloat(tarifaDesarmeDepo) : null,
+        tarifaGuardia: tarifaGuardia != null && tarifaGuardia !== "" ? parseFloat(tarifaGuardia) : null,
+      },
     });
     return NextResponse.json(utilero);
   } catch (err) {

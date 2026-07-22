@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:setup": "prisma generate && prisma migrate dev && prisma db seed",
     "db:seed": "npx prisma db seed",
-    "db:studio": "npx prisma studio"
+    "db:studio": "npx prisma studio",
+    "db:diagnostico": "tsx prisma/db-diagnostico.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -18,8 +19,11 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
+    "emailjs": "^5.0.2",
+    "jspdf": "^4.2.0",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
+    "nextjs-toploader": "^3.9.17",
     "prisma": "^5.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",

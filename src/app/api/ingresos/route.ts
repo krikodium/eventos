@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { eventoId, monto, concepto, fecha, tipo, numeroFactura } = body;
+    const { eventoId, monto, concepto, fecha, tipo, numeroFactura, metodoPago } = body;
     if (!eventoId || monto == null) {
       return NextResponse.json({ error: "Faltan campos: eventoId, monto" }, { status: 400 });
     }
@@ -22,6 +22,7 @@ export async function POST(req: Request) {
         fecha: fecha ? new Date(fecha) : new Date(),
         tipo: tipo ?? "FACTURACION",
         numeroFactura: numeroFactura || null,
+        metodoPago: metodoPago ?? "TRANSF_ARS",
       },
     });
     return NextResponse.json(ingreso);
