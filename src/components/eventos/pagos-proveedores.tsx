@@ -152,8 +152,8 @@ export function PagosProveedores({
   );
 
   const inputClass =
-    "px-3 py-2 rounded-lg bg-white border border-neutral-200 text-neutral-900 text-sm focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300 placeholder:text-neutral-400";
-  const labelClass = "block text-xs font-medium text-neutral-600 mb-1";
+    "px-3.5 py-2.5 rounded-lg bg-white border border-neutral-200 text-neutral-900 text-sm transition-colors hover:border-neutral-300 focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300 placeholder:text-neutral-400";
+  const labelClass = "block text-xs font-medium text-neutral-600 mb-1.5";
 
   const proveedorOptions = proveedores.map((p) => ({
     value: p.id,
@@ -175,33 +175,31 @@ export function PagosProveedores({
       {mostrarFormulario && (
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 p-4 bg-neutral-50 rounded-xl border border-neutral-200"
+          className="grid grid-cols-2 gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:grid-cols-3 lg:grid-cols-6"
         >
           {mostrarSelectorModo && (
-            <div className="col-span-2 sm:col-span-6 flex flex-wrap gap-3 pb-2 border-b border-neutral-200">
-              <span className="text-xs font-medium text-neutral-500 uppercase self-center">Alta:</span>
-              <button
-                type="button"
-                onClick={() => setModoAlta("MOVIMIENTO")}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  modoAlta === "MOVIMIENTO"
-                    ? "bg-neutral-900 text-white"
-                    : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-                }`}
-              >
-                Pago realizado
-              </button>
-              <button
-                type="button"
-                onClick={() => setModoAlta("COMPROMISO")}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  modoAlta === "COMPROMISO"
-                    ? "bg-neutral-900 text-white"
-                    : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-                }`}
-              >
-                Cotización / compromiso
-              </button>
+            <div className="col-span-2 flex flex-wrap items-center gap-3 sm:col-span-6">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Alta</span>
+              <div className="inline-flex gap-1 rounded-xl bg-neutral-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setModoAlta("MOVIMIENTO")}
+                  className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all ${
+                    modoAlta === "MOVIMIENTO" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                  }`}
+                >
+                  Pago realizado
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModoAlta("COMPROMISO")}
+                  className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all ${
+                    modoAlta === "COMPROMISO" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                  }`}
+                >
+                  Cotización / compromiso
+                </button>
+              </div>
             </div>
           )}
           <div className="sm:col-span-2">
@@ -277,10 +275,10 @@ export function PagosProveedores({
 
       {pagos.length > 0 ? (
         <>
-          <div className="overflow-x-auto rounded-lg border border-neutral-200">
+          <div className="overflow-x-auto rounded-xl border border-neutral-200">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-neutral-100 text-left">
+                <tr className="border-b border-neutral-100 bg-neutral-50 text-left">
                   <th className="py-2.5 px-3 text-xs font-semibold text-neutral-600 uppercase">Tipo</th>
                   <th className="py-2.5 px-3 text-xs font-semibold text-neutral-600 uppercase">Fecha</th>
                   <th className="py-2.5 px-3 text-xs font-semibold text-neutral-600 uppercase">Proveedor</th>
@@ -352,30 +350,26 @@ export function PagosProveedores({
             </table>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-neutral-200">
-            <div className="flex flex-wrap gap-6 text-sm">
-              <span className="text-neutral-600">
-                Pagos (mov.):{" "}
-                <strong className="text-neutral-900 tabular-nums">${totalMov.toLocaleString("es-AR")}</strong>
+          <div className="flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-4">
+            <span className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-600">
+              Pagos (mov.): <strong className="tabular-nums text-neutral-900">${totalMov.toLocaleString("es-AR")}</strong>
+            </span>
+            {totalComp > 0 && (
+              <span className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-600">
+                Cotizaciones: <strong className="tabular-nums text-neutral-900">${totalComp.toLocaleString("es-AR")}</strong>
               </span>
-              {totalComp > 0 && (
-                <span className="text-neutral-600">
-                  Cotizaciones (compromisos):{" "}
-                  <strong className="text-neutral-900 tabular-nums">${totalComp.toLocaleString("es-AR")}</strong>
-                </span>
-              )}
-              <span className="text-neutral-600">
-                ARS (mov.): <strong className="text-neutral-900 tabular-nums">${totalARS.toLocaleString("es-AR")}</strong>
+            )}
+            <span className="rounded-lg bg-neutral-100 px-3 py-1.5 text-xs text-neutral-600">
+              ARS (mov.): <strong className="tabular-nums text-neutral-900">${totalARS.toLocaleString("es-AR")}</strong>
+            </span>
+            <span className="rounded-lg bg-neutral-100 px-3 py-1.5 text-xs text-neutral-600">
+              USD (mov.): <strong className="tabular-nums text-neutral-900">${totalUSD.toLocaleString("es-AR")}</strong>
+            </span>
+            {Object.entries(porMetodo).map(([metodo, monto]) => (
+              <span key={metodo} className="rounded-lg bg-neutral-50 px-3 py-1.5 text-xs text-neutral-500">
+                {METODOS[metodo] ?? metodo}: <span className="tabular-nums">${monto.toLocaleString("es-AR")}</span>
               </span>
-              <span className="text-neutral-600">
-                USD (mov.): <strong className="text-neutral-900 tabular-nums">${totalUSD.toLocaleString("es-AR")}</strong>
-              </span>
-              {Object.entries(porMetodo).map(([metodo, monto]) => (
-                <span key={metodo} className="text-neutral-500">
-                  {METODOS[metodo] ?? metodo}: <span className="tabular-nums">${monto.toLocaleString("es-AR")}</span>
-                </span>
-              ))}
-            </div>
+            ))}
           </div>
         </>
       ) : (

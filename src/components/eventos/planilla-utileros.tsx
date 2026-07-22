@@ -180,16 +180,19 @@ export function PlanillaUtileros({
   }
 
   const thClass =
-    "py-2.5 px-2 text-left text-[11px] font-semibold text-neutral-700 uppercase tracking-wide bg-neutral-100";
+    "py-2.5 px-2 text-left text-[11px] font-semibold text-neutral-500 uppercase tracking-wide bg-neutral-50 border-b border-neutral-100";
   const tdClass = (i: number) =>
     `py-2 px-2 text-sm tabular-nums ${i % 2 === 0 ? "bg-white" : "bg-neutral-50"}`;
   const tdPagoClass = (i: number) =>
     `py-2 px-2 text-sm tabular-nums bg-neutral-200/50 ${i % 2 === 0 ? "border-l border-neutral-200/90" : ""}`;
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-neutral-200 shadow-sm">
-      <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-neutral-900">Planilla de pagos - Utileros</h2>
+    <div className="relative overflow-hidden rounded-2xl border border-neutral-200 shadow-sm">
+      <div className="flex items-center justify-between gap-3 border-b border-neutral-100 px-6 py-4">
+        <div>
+          <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-600">Equipo operativo</p>
+          <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Planilla de pagos · Utileros</h2>
+        </div>
         <div className="flex items-center gap-3">
           <label className="text-neutral-600 text-sm">Días de armado</label>
           {puedeEditarDiasArmado && onDiasArmadoChange ? (

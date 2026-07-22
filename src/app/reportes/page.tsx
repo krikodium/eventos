@@ -11,8 +11,8 @@ export default async function ReportesPage() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <PageHeader eyebrow="Análisis" title="Reportes financieros" description="Leé ingresos, costos, márgenes y distribución de gastos para tomar decisiones con contexto." status="Datos consolidados" />
+      <main className="mx-auto max-w-[1480px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <PageHeader eyebrow="Análisis" title="Reportes financieros" description="Analizá períodos puntuales o construí una lectura histórica de ingresos, costos, márgenes y resultados." status="Períodos e histórico" />
         <ReportesView />
       </main>
     </div>

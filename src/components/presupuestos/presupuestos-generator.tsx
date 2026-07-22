@@ -1,10 +1,59 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { jsPDF } from "jspdf";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Select } from "@/components/ui/select";
+
+/** Overlay de carga al generar el PDF: badge "HC" fino con un punto de luz recorriendo el contorno. */
+function PdfLoadingOverlay() {
+  return (
+    <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center gap-7 bg-neutral-950/85 backdrop-blur-md">
+      <svg width="132" height="132" viewBox="0 0 120 120" className="overflow-visible">
+        <defs>
+          <filter id="hc-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.6" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <linearGradient id="hc-comet" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#d7d4cd" />
+            <stop offset="100%" stopColor="#ffffff" />
+          </linearGradient>
+        </defs>
+
+        {/* Contorno base tenue */}
+        <rect x="14" y="14" width="92" height="92" rx="24" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="2" />
+
+        {/* Punto de luz que recorre el contorno */}
+        <rect
+          x="14" y="14" width="92" height="92" rx="24"
+          fill="none" stroke="url(#hc-comet)" strokeWidth="3" strokeLinecap="round"
+          strokeDasharray="10 330" filter="url(#hc-glow)"
+        >
+          <animate attributeName="stroke-dashoffset" from="340" to="0" dur="1.5s" repeatCount="indefinite" />
+        </rect>
+
+        {/* HC fino (contorno) */}
+        <text
+          x="60" y="61" textAnchor="middle" dominantBaseline="central"
+          fontFamily="Arial, sans-serif" fontSize="40" fontWeight="800"
+          fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="0.7"
+        >
+          HC
+        </text>
+      </svg>
+      <div className="flex flex-col items-center gap-1">
+        <p className="text-sm font-semibold tracking-wide text-white">Generando PDF…</p>
+        <p className="text-xs text-white/50">Preparando tu presupuesto</p>
+      </div>
+    </div>
+  );
+}
 
 type Item = {
   id: string;
@@ -89,6 +138,9 @@ export function PresupuestosGenerator() {
   const [presupuestoId, setPresupuestoId] = useState<string>("");
   const [estadoEvento, setEstadoEvento] = useState<string>("BORRADOR");
   const [mensaje, setMensaje] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     fetch("/api/presupuestos")
@@ -295,9 +347,12 @@ export function PresupuestosGenerator() {
   const itemsCompletos = items.filter((item) => item.concepto.trim() && item.precioCliente > 0).length;
   const datosCompletos = [form.cliente, form.evento, form.fecha].filter(Boolean).length;
 
-  function generarPDF(modo: "cliente" | "interno") {
+  async function generarPDF(modo: "cliente" | "interno") {
     setExporting(true);
     setShowPdfModal(false);
+    // Dejar que el overlay se pinte antes del trabajo sincrónico de jsPDF (que bloquea el hilo).
+    await new Promise((r) => setTimeout(r, 90));
+    const startedAt = Date.now();
     try {
       const esInterno = modo === "interno";
       const doc = new jsPDF({ unit: "mm", format: "a4" });
@@ -336,45 +391,68 @@ export function PresupuestosGenerator() {
 
       let y = 0;
 
-      // ── HEADER ──
-      doc.setFillColor(15, 15, 15);
-      doc.rect(0, 0, PW, 36, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.text("HC", M, 22);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.setCharSpace(2.5);
+      // ── HEADER (masthead minimalista, sin banda negra) ──
       const presupTitle = esInterno ? "PRESUPUESTO INTERNO" : "PRESUPUESTO";
-      const presupW = doc.getTextWidth(presupTitle) + 2.5 * (presupTitle.length - 1);
-      doc.text(presupTitle, R - presupW, 22);
+
+      // Logotipo
+      doc.setTextColor(22, 22, 22);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(25);
+      doc.text("HC", M, 26);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      doc.setTextColor(155, 155, 155);
+      doc.setCharSpace(1.8);
+      doc.text("HERMANAS CARADONTI", M, 32);
       doc.setCharSpace(0);
 
-      // ── DATOS SUPERIORES (grilla 2×3) ──
-      y = 46;
+      // Bloque derecho: tipo de documento · número · fecha
+      // Nota: con setCharSpace, align:"right" no cuenta el espaciado y se corta contra el borde.
+      // Calculamos el ancho real (incluyendo el letter-spacing) y anclamos a la izquierda.
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(155, 155, 155);
+      doc.setCharSpace(2);
+      const presupW = doc.getTextWidth(presupTitle) + 2 * presupTitle.length;
+      doc.text(presupTitle, R - presupW, 20);
+      doc.setCharSpace(0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(22, 22, 22);
+      doc.text(`N° ${form.presupuestoNro || "—"}`, R, 27, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(120, 120, 120);
+      doc.text(form.fecha || "—", R, 32.5, { align: "right" });
+
+      // Regla del header
+      doc.setDrawColor(212, 212, 212);
+      doc.setLineWidth(0.4);
+      doc.line(M, 40, R, 40);
+
+      // ── DATOS DEL PRESUPUESTO ──
+      y = 53;
       const col1X = M;
       const col2X = M + CW * 0.52;
-      const col1W = CW * 0.48;
-      const col2W = CW * 0.44;
-      const rowGap = 14;
+      const col1W = CW * 0.46;
+      const col2W = CW * 0.46;
+      const rowGap = 15;
 
       const drawField = (label: string, value: string, x: number, maxW: number, atY: number) => {
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(7);
-        doc.setTextColor(130, 130, 130);
+        doc.setFontSize(6.5);
+        doc.setTextColor(150, 150, 150);
+        doc.setCharSpace(0.8);
         doc.text(label.toUpperCase(), x, atY);
+        doc.setCharSpace(0);
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(9.5);
-        doc.setTextColor(20, 20, 20);
-        doc.text(clip(value || "—", maxW, "bold"), x, atY + 5);
+        doc.setFontSize(10.5);
+        doc.setTextColor(28, 28, 28);
+        doc.text(clip(value || "—", maxW, "bold"), x, atY + 5.5);
       };
 
       drawField("Empresa", form.empresa || "—", col1X, col1W, y);
-      drawField("Presupuesto Nro.", form.presupuestoNro || "—", col2X, col2W, y);
-      y += rowGap;
-      drawField("Cliente", form.cliente || "—", col1X, col1W, y);
-      drawField("Fecha", form.fecha || "—", col2X, col2W, y);
+      drawField("Cliente", form.cliente || "—", col2X, col2W, y);
       y += rowGap;
       drawField("Evento", form.evento || "—", col1X, col1W, y);
       drawField("Validez", `${form.validez} días`, col2X, col2W, y);
@@ -382,17 +460,11 @@ export function PresupuestosGenerator() {
       const fpLabel = formaPagoOptions.find((o) => o.value === form.formaPago)?.label ?? form.formaPago;
       drawField("Forma de pago", fpLabel || "—", col1X, CW, y);
 
-      y += rowGap + 2;
-
-      // ── SEPARADOR ──
-      doc.setDrawColor(30, 30, 30);
-      doc.setLineWidth(0.5);
-      doc.line(M, y, R, y);
-      y += 8;
+      y += rowGap + 6;
 
       // ── TABLA DE ITEMS ──
       const tableBottom = PH - 24;
-      const rowH = 8;
+      const rowH = 9.5;
 
       let colConceptoX: number, colCantX: number, colInternoX: number, colClienteX: number, colSubtX: number, conceptoW: number;
 
@@ -413,21 +485,29 @@ export function PresupuestosGenerator() {
       }
 
       const drawTableHeader = () => {
-        doc.setFillColor(235, 235, 235);
-        doc.roundedRect(M, y, CW, 8, 1, 1, "F");
+        doc.setDrawColor(30, 30, 30);
+        doc.setLineWidth(0.5);
+        doc.line(M, y, R, y);
+        y += 5;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.5);
-        doc.setTextColor(60, 60, 60);
-        doc.text("CONCEPTO", colConceptoX, y + 5.5);
-        doc.text("CANT.", colCantX, y + 5.5, { align: "right" });
+        doc.setFontSize(7);
+        doc.setTextColor(135, 135, 135);
+        doc.setCharSpace(0.6);
+        doc.text("CONCEPTO", colConceptoX, y);
+        doc.text("CANT.", colCantX, y, { align: "right" });
         if (esInterno) {
-          doc.text("P. INTERNO", colInternoX, y + 5.5, { align: "right" });
-          doc.text("P. CLIENTE", colClienteX, y + 5.5, { align: "right" });
+          doc.text("P. INTERNO", colInternoX, y, { align: "right" });
+          doc.text("P. CLIENTE", colClienteX, y, { align: "right" });
         } else {
-          doc.text("P. UNITARIO", colClienteX, y + 5.5, { align: "right" });
+          doc.text("P. UNITARIO", colClienteX, y, { align: "right" });
         }
-        doc.text("SUBTOTAL", colSubtX, y + 5.5, { align: "right" });
-        y += 10;
+        doc.text("SUBTOTAL", colSubtX, y, { align: "right" });
+        doc.setCharSpace(0);
+        y += 3.5;
+        doc.setDrawColor(226, 226, 226);
+        doc.setLineWidth(0.3);
+        doc.line(M, y, R, y);
+        y += 7;
       };
 
       drawTableHeader();
@@ -444,25 +524,25 @@ export function PresupuestosGenerator() {
           drawTableHeader();
         }
 
-        if (i % 2 === 0) {
-          doc.setFillColor(248, 248, 248);
-          doc.rect(M, y - 1, CW, rowH, "F");
-        }
-
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(8.5);
-        doc.setTextColor(30, 30, 30);
-        doc.text(clip(item.concepto || "—", conceptoW), colConceptoX, y + 5);
-        doc.text(String(item.cantidad), colCantX, y + 5, { align: "right" });
+        doc.setFontSize(9);
+        doc.setTextColor(40, 40, 40);
+        doc.text(clip(item.concepto || "—", conceptoW), colConceptoX, y + 5.5);
+        doc.setTextColor(95, 95, 95);
+        doc.text(String(item.cantidad), colCantX, y + 5.5, { align: "right" });
         if (esInterno) {
-          doc.setTextColor(100, 100, 100);
-          doc.text(fmt(item.precioInterno), colInternoX, y + 5, { align: "right" });
-          doc.setTextColor(30, 30, 30);
+          doc.setTextColor(150, 150, 150);
+          doc.text(fmt(item.precioInterno), colInternoX, y + 5.5, { align: "right" });
         }
-        doc.text(fmt(item.precioCliente), colClienteX, y + 5, { align: "right" });
+        doc.setTextColor(95, 95, 95);
+        doc.text(fmt(item.precioCliente), colClienteX, y + 5.5, { align: "right" });
         doc.setFont("helvetica", "bold");
-        doc.text(fmt(sub), colSubtX, y + 5, { align: "right" });
+        doc.setTextColor(28, 28, 28);
+        doc.text(fmt(sub), colSubtX, y + 5.5, { align: "right" });
         y += rowH;
+        doc.setDrawColor(237, 237, 237);
+        doc.setLineWidth(0.2);
+        doc.line(M, y, R, y);
       }
 
       // ── Honorarios row ──
@@ -474,25 +554,27 @@ export function PresupuestosGenerator() {
           y = 16;
           drawTableHeader();
         }
-        doc.setFillColor(240, 240, 240);
-        doc.rect(M, y - 1, CW, rowH, "F");
         doc.setFont("helvetica", "italic");
-        doc.setFontSize(8.5);
-        doc.setTextColor(30, 30, 30);
+        doc.setFontSize(9);
+        doc.setTextColor(70, 70, 70);
         const honLabel = honorariosTipo === "PORCENTAJE"
           ? `${honorariosConcepto} (${honorariosMonto}%)`
           : honorariosConcepto;
-        doc.text(clip(honLabel, conceptoW, "normal"), colConceptoX, y + 5);
-        doc.text("1", colCantX, y + 5, { align: "right" });
+        doc.text(clip(honLabel, conceptoW, "normal"), colConceptoX, y + 5.5);
+        doc.text("1", colCantX, y + 5.5, { align: "right" });
         if (esInterno) {
-          doc.setTextColor(100, 100, 100);
-          doc.text("—", colInternoX, y + 5, { align: "right" });
-          doc.setTextColor(30, 30, 30);
+          doc.setTextColor(150, 150, 150);
+          doc.text("—", colInternoX, y + 5.5, { align: "right" });
+          doc.setTextColor(70, 70, 70);
         }
-        doc.text(fmt(honorariosValor), colClienteX, y + 5, { align: "right" });
+        doc.text(fmt(honorariosValor), colClienteX, y + 5.5, { align: "right" });
         doc.setFont("helvetica", "bold");
-        doc.text(fmt(honorariosValor), colSubtX, y + 5, { align: "right" });
+        doc.setTextColor(28, 28, 28);
+        doc.text(fmt(honorariosValor), colSubtX, y + 5.5, { align: "right" });
         y += rowH;
+        doc.setDrawColor(237, 237, 237);
+        doc.setLineWidth(0.2);
+        doc.line(M, y, R, y);
       }
 
       // ── Línea inferior de tabla ──
@@ -510,29 +592,38 @@ export function PresupuestosGenerator() {
         y = 20;
       }
 
+      const totalW = 86;
+      const totalX = R - totalW;
+
       if (honorariosValor > 0) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8.5);
-        doc.setTextColor(80, 80, 80);
-        doc.text("Subtotal ítems:", R - 72, y + 4);
+        doc.setTextColor(115, 115, 115);
+        doc.text("Subtotal ítems", totalX, y + 4);
         doc.text(fmt(subtotalCliente), R - 2, y + 4, { align: "right" });
         y += 7;
-        doc.text(`${honorariosConcepto}:`, R - 72, y + 4);
+        doc.text(honorariosConcepto, totalX, y + 4);
         doc.text(fmt(honorariosValor), R - 2, y + 4, { align: "right" });
         y += 9;
       }
 
-      const totalBoxW = 72;
-      const totalBoxX = R - totalBoxW;
-      doc.setFillColor(15, 15, 15);
-      doc.roundedRect(totalBoxX, y, totalBoxW, 14, 2, 2, "F");
-      doc.setTextColor(255, 255, 255);
+      // TOTAL — tratamiento elegante, sin caja negra
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(totalX, y, totalW, 15, 2, 2, "F");
+      doc.setDrawColor(24, 24, 24);
+      doc.setLineWidth(0.6);
+      doc.line(totalX, y, totalX + totalW, y);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.setCharSpace(1.2);
+      doc.text("TOTAL", totalX + 6, y + 9.5);
+      doc.setCharSpace(0);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.text("TOTAL", totalBoxX + 6, y + 9);
-      doc.setFontSize(11);
-      doc.text(fmt(totalCliente), R - 4, y + 9, { align: "right" });
-      y += 20;
+      doc.setFontSize(13);
+      doc.setTextColor(22, 22, 22);
+      doc.text(fmt(totalCliente), R - 6, y + 9.7, { align: "right" });
+      y += 22;
 
       // ── Bloque interno: costos y margen ──
       if (esInterno) {
@@ -569,22 +660,140 @@ export function PresupuestosGenerator() {
         if (costoImpuestos > 0) drawLine(`Impuestos (${impuestosPct}%)`, costoImpuestos);
         drawLine("Total costo", totalInterno);
 
-        y += 2;
-        doc.setDrawColor(30, 30, 30);
-        doc.setLineWidth(0.3);
-        doc.line(R - 72, y, R, y);
-        y += 2;
+        y += 3;
 
-        const margenBoxW = 72;
-        const margenBoxX = R - margenBoxW;
-        doc.setFillColor(margenBruto >= 0 ? 20 : 180, margenBruto >= 0 ? 20 : 30, margenBruto >= 0 ? 20 : 30);
-        doc.roundedRect(margenBoxX, y, margenBoxW, 14, 2, 2, "F");
-        doc.setTextColor(255, 255, 255);
+        const margenW = 86;
+        const margenX = R - margenW;
+        const mr = margenBruto >= 0 ? 16 : 190;
+        const mg = margenBruto >= 0 ? 122 : 40;
+        const mb = margenBruto >= 0 ? 90 : 40;
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(margenX, y, margenW, 15, 2, 2, "F");
+        doc.setDrawColor(mr, mg, mb);
+        doc.setLineWidth(0.6);
+        doc.line(margenX, y, margenX + margenW, y);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        doc.setCharSpace(1.2);
+        doc.text("MARGEN", margenX + 6, y + 9.5);
+        doc.setCharSpace(0);
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(9);
-        doc.text("MARGEN", margenBoxX + 6, y + 9);
-        doc.setFontSize(11);
-        doc.text(fmt(margenBruto), R - 4, y + 9, { align: "right" });
+        doc.setFontSize(13);
+        doc.setTextColor(mr, mg, mb);
+        doc.text(fmt(margenBruto), R - 6, y + 9.7, { align: "right" });
+      }
+
+      // ── TÉRMINOS Y CONDICIONES (solo PDF Cliente) ──
+      if (!esInterno) {
+        const lh = 4.5;
+        const ensure = (needed: number) => {
+          if (y + needed > PH - 18) {
+            drawFooter();
+            doc.addPage();
+            pageNum++;
+            y = 20;
+          }
+        };
+        const sectionTitle = (t: string) => {
+          ensure(11);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8.8);
+          doc.setTextColor(20, 20, 20);
+          doc.text(t, M, y);
+          y += lh + 2;
+        };
+        const paragraph = (t: string, italic = false) => {
+          doc.setFont("helvetica", italic ? "italic" : "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(70, 70, 70);
+          for (const line of doc.splitTextToSize(t, CW) as string[]) {
+            ensure(lh);
+            doc.text(line, M, y);
+            y += lh;
+          }
+        };
+        const bullet = (t: string) => {
+          doc.setFontSize(8);
+          const lines = doc.splitTextToSize(t, CW - 6) as string[];
+          lines.forEach((line, idx) => {
+            ensure(lh);
+            if (idx === 0) {
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(150, 150, 150);
+              doc.text("•", M + 1.5, y);
+            }
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(70, 70, 70);
+            doc.text(line, M + 6, y);
+            y += lh;
+          });
+        };
+
+        // Nueva página dedicada a los términos
+        drawFooter();
+        doc.addPage();
+        pageNum++;
+        y = 22;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(20, 20, 20);
+        doc.text("Términos y condiciones", M, y);
+        y += 3;
+        doc.setDrawColor(30, 30, 30);
+        doc.setLineWidth(0.5);
+        doc.line(M, y, R, y);
+        y += 9;
+
+        sectionTitle("NOTA IMPORTANTE");
+        bullet("En el caso de posponerse la fecha, los precios se actualizarán al día de la nueva fecha.");
+        bullet("El presupuesto tiene validez por 10 días hábiles.");
+        bullet("Este presupuesto tiene un fin orientativo, quedando el presupuesto definitivo sujeto a las eventuales variaciones de los precios del mercado al momento del pago final.");
+        bullet("El presupuesto definitivo se actualiza por IPC, y será presentado 10 días antes del evento.");
+        y += 3;
+
+        sectionTitle("Condiciones de pago");
+        bullet("Adelanto: 30% del presupuesto inicial, para reservar mobiliario y la fecha.");
+        bullet("Saldo: 7 días hábiles antes del día de armado.");
+        y += 3;
+
+        sectionTitle("Todos los elementos del presupuesto son a modo de ALQUILER");
+        bullet("El presupuesto incluye la provisión de flores y floreros, muebles y objetos, montaje y gastos de envío.");
+        bullet("La reserva de fecha y mobiliario se efectúa mediante el pago del 30% del presupuesto inicial.");
+        bullet("Se deberá dejar, antes de la fecha de entrega prevista, un cheque de $2.000.000 en concepto de garantía.");
+        bullet("Los muebles y objetos deben ser devueltos en las mismas condiciones; en caso de robo o rotura de los objetos alquilados, la reposición correrá por cuenta del cliente.");
+        bullet("Si el evento se suspendiera, pospusiera o cancelara por cualquier motivo no imputable a HERMANAS CARADONTI, el anticipo no será reembolsable.");
+        y += 4;
+
+        paragraph(
+          "\"A los efectos del presente presupuesto se declara que el mismo incluye el cumplimiento de la totalidad de las habilitaciones locales requeridas, así como la utilización de material debidamente tratado y autorizado conforme las regulaciones nacionales, provinciales y municipales específicas. Asimismo, contempla el total cumplimiento de las obligaciones laborales, previsionales y de riesgo del trabajo del personal a cargo de la empresa.\"",
+          true
+        );
+        y += 6;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.2);
+        doc.setTextColor(40, 40, 40);
+        ensure(8);
+        doc.text("Habiendo sido notificado de las condiciones de pago, acepto las mismas.", M, y);
+
+        // Línea de firma al pie
+        ensure(40);
+        const sy = PH - 38;
+        const colGap = 10;
+        const colW = (CW - 2 * colGap) / 3;
+        const cols = ["Firma", "Aclaración", "DNI"];
+        doc.setDrawColor(120, 120, 120);
+        doc.setLineWidth(0.3);
+        cols.forEach((label, i) => {
+          const cx = M + i * (colW + colGap);
+          doc.line(cx, sy, cx + colW, sy);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(90, 90, 90);
+          doc.text(label, cx, sy + 5);
+        });
       }
 
       // ── FOOTER ──
@@ -595,6 +804,12 @@ export function PresupuestosGenerator() {
     } catch (err) {
       console.error(err);
     } finally {
+      // Mantener el overlay un mínimo para que la animación se perciba.
+      const elapsed = Date.now() - startedAt;
+      const minDuration = 1100;
+      if (elapsed < minDuration) {
+        await new Promise((r) => setTimeout(r, minDuration - elapsed));
+      }
       setExporting(false);
     }
   }
@@ -604,7 +819,45 @@ export function PresupuestosGenerator() {
   const labelClass = "mb-1.5 block text-xs font-semibold text-neutral-600";
 
   return (
-    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+    <div className="space-y-6">
+      {/* Barra de presupuestos guardados — acceso rápido, fuera del Paso 1 */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 sm:max-w-md sm:flex-1">
+          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Presupuesto guardado</label>
+          <Select
+            value={presupuestoId}
+            onChange={(v) => {
+              if (!v) {
+                nuevoPresupuesto();
+                return;
+              }
+              cargarPresupuesto(v);
+            }}
+            options={[
+              { value: "", label: "Nuevo presupuesto..." },
+              ...presupuestos.map((p) => ({
+                value: p.id,
+                label: `${p.presupuestoNro ? `#${p.presupuestoNro} · ` : ""}${p.evento} (${new Date(
+                  p.fecha
+                ).toLocaleDateString("es-AR")})`,
+              })),
+            ]}
+            placeholder="Seleccionar presupuesto..."
+          />
+        </div>
+        <button
+          type="button"
+          onClick={nuevoPresupuesto}
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:border-neutral-300 hover:bg-neutral-50"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 5v14M5 12h14" />
+          </svg>
+          Nuevo presupuesto
+        </button>
+      </div>
+
+      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
       {/* Formulario */}
       <div className="min-w-0 space-y-5">
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
@@ -688,29 +941,6 @@ export function PresupuestosGenerator() {
               </div>
             </div>
             <div className="space-y-3 border-t border-neutral-100 pt-5 sm:col-span-2">
-              <div>
-                <label className={labelClass}>Presupuestos guardados</label>
-                <Select
-                  value={presupuestoId}
-                  onChange={(v) => {
-                    if (!v) {
-                      nuevoPresupuesto();
-                      return;
-                    }
-                    cargarPresupuesto(v);
-                  }}
-                  options={[
-                    { value: "", label: "Nuevo presupuesto..." },
-                    ...presupuestos.map((p) => ({
-                      value: p.id,
-                      label: `${p.presupuestoNro ? `#${p.presupuestoNro} · ` : ""}${p.evento} (${new Date(
-                        p.fecha
-                      ).toLocaleDateString("es-AR")})`,
-                    })),
-                  ]}
-                  placeholder="Seleccionar presupuesto..."
-                />
-              </div>
               <div>
                 <label className={labelClass}>Estado del evento a crear</label>
                 <Select
@@ -1009,54 +1239,65 @@ export function PresupuestosGenerator() {
             {exporting ? "Generando PDF..." : "Exportar a PDF"}
           </button>
 
-          {showPdfModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
-                <div className="px-6 py-4 border-b border-neutral-200">
+        </div>
+
+        {mounted && showPdfModal &&
+          createPortal(
+            <div
+              className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+              onClick={() => setShowPdfModal(false)}
+            >
+              <div
+                className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="border-b border-neutral-200 px-6 py-4">
                   <h3 className="text-base font-semibold text-neutral-900">Exportar presupuesto</h3>
-                  <p className="text-xs text-neutral-500 mt-1">Seleccioná el tipo de PDF a generar</p>
+                  <p className="mt-1 text-xs text-neutral-500">Seleccioná el tipo de PDF a generar</p>
                 </div>
-                <div className="p-6 space-y-3">
+                <div className="space-y-3 p-6">
                   <button
                     type="button"
                     onClick={() => generarPDF("cliente")}
-                    className="w-full py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-xl transition-colors text-sm text-left flex items-center gap-3"
+                    className="flex w-full items-center gap-3 rounded-xl bg-neutral-900 px-4 py-3 text-left text-sm font-medium text-white transition-colors hover:bg-neutral-800"
                   >
-                    <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-base">
+                    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/10 text-base">
                       C
                     </span>
                     <span>
                       <span className="block font-semibold">PDF Cliente</span>
-                      <span className="block text-xs text-neutral-300 font-normal">Solo precios al cliente, para enviar</span>
+                      <span className="block text-xs font-normal text-neutral-300">Solo precios al cliente, para enviar</span>
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => generarPDF("interno")}
-                    className="w-full py-3 px-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-medium rounded-xl transition-colors text-sm text-left flex items-center gap-3 border border-neutral-200"
+                    className="flex w-full items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-100 px-4 py-3 text-left text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-200"
                   >
-                    <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-900/10 flex items-center justify-center text-base">
+                    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-900/10 text-base">
                       I
                     </span>
                     <span>
                       <span className="block font-semibold">PDF Interno</span>
-                      <span className="block text-xs text-neutral-500 font-normal">Costos, márgenes y análisis completo</span>
+                      <span className="block text-xs font-normal text-neutral-500">Costos, márgenes y análisis completo</span>
                     </span>
                   </button>
                 </div>
-                <div className="px-6 py-3 border-t border-neutral-100">
+                <div className="border-t border-neutral-100 px-6 py-3">
                   <button
                     type="button"
                     onClick={() => setShowPdfModal(false)}
-                    className="w-full py-2 text-sm text-neutral-500 hover:text-neutral-700 transition-colors font-medium"
+                    className="w-full py-2 text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-700"
                   >
                     Cancelar
                   </button>
                 </div>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
-        </div>
+
+        {mounted && exporting && createPortal(<PdfLoadingOverlay />, document.body)}
       </div>
 
       {/* Vista previa — FIX: tabla con subtotal por fila */}
@@ -1160,6 +1401,7 @@ export function PresupuestosGenerator() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

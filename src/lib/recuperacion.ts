@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
-import { sendEmailResend } from "@/lib/email/resend";
+import { sendEmail } from "@/lib/email/mailer";
 import { escapeHtml, getBaseUrl } from "@/lib/invitaciones";
 
 export const RECUPERACION_TTL_MINUTOS = 60;
@@ -15,18 +15,18 @@ function renderRecuperacionEmail(params: { nombre: string; url: string }): strin
   return `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Restablecé tu contraseña</title></head>
-<body style="margin:0;padding:0;background:#f4f5f7;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 12px;background:#f4f5f7;">
+<body style="margin:0;padding:0;background:#f5f3ee;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 12px;background:#f5f3ee;">
 <tr><td align="center">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;overflow:hidden;border:1px solid #e5e7eb;border-radius:18px;background:#ffffff;">
     <tr><td style="padding:26px 32px;background:#0b0d10;color:#ffffff;font-family:Arial,sans-serif;"><strong>Eventos HC</strong><div style="margin-top:4px;font-size:12px;color:#9ca3af;">Acceso seguro</div></td></tr>
     <tr><td style="padding:34px 32px 12px;font-family:Arial,sans-serif;color:#111827;">
-      <div style="font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#0284c7;">Recuperación de acceso</div>
+      <div style="font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#444443;">Recuperación de acceso</div>
       <h1 style="margin:10px 0 14px;font-size:23px;">Hola ${nombre},</h1>
       <p style="margin:0;color:#52525b;font-size:14px;line-height:1.65;">Recibimos una solicitud para cambiar tu contraseña. El enlace es personal y vence en ${RECUPERACION_TTL_MINUTOS} minutos.</p>
     </td></tr>
     <tr><td style="padding:16px 32px 28px;"><a href="${url}" target="_blank" style="display:inline-block;padding:13px 24px;border-radius:10px;background:#0b0d10;color:#ffffff;font:600 14px Arial,sans-serif;text-decoration:none;">Crear nueva contraseña</a></td></tr>
-    <tr><td style="padding:0 32px 28px;font:12px Arial,sans-serif;color:#71717a;word-break:break-all;">Si el botón no funciona, copiá este enlace:<br><span style="color:#0284c7;">${url}</span></td></tr>
+    <tr><td style="padding:0 32px 28px;font:12px Arial,sans-serif;color:#71717a;word-break:break-all;">Si el botón no funciona, copiá este enlace:<br><span style="color:#444443;">${url}</span></td></tr>
     <tr><td style="padding:20px 32px;border-top:1px solid #e5e7eb;background:#fafafa;font:12px/1.6 Arial,sans-serif;color:#a1a1aa;">Si no pediste este cambio, ignorá el mensaje. Tu contraseña actual seguirá funcionando.</td></tr>
   </table>
 </td></tr></table>
@@ -46,7 +46,7 @@ export async function crearYEnviarRecuperacion(user: { id: string; email: string
   const text = `Hola ${nombre},\n\nCreá una nueva contraseña desde este enlace:\n${url}\n\nEl enlace vence en ${RECUPERACION_TTL_MINUTOS} minutos. Si no pediste el cambio, ignorá este mensaje.`;
 
   try {
-    await sendEmailResend({
+    await sendEmail({
       to: [user.email],
       subject,
       text,

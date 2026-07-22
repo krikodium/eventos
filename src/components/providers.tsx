@@ -7,7 +7,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <NextTopLoader
-        color="#0ea5e9"
+        color="#484847"
         height={3}
         initialPosition={0.12}
         crawlSpeed={180}

@@ -11,8 +11,30 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const desde = searchParams.get("desde");
+  const modo = searchParams.get("modo") === "historico" ? "historico" : "periodo";
+  const alcance = searchParams.get("alcance");
+  let desde = searchParams.get("desde");
   const hasta = searchParams.get("hasta");
+
+  if (modo === "historico" && alcance === "todo" && hasta) {
+    const [primerIngreso, primerPago, primeraCaja, primerEvento, primerDiaUtilero] =
+      await Promise.all([
+        prisma.ingreso.aggregate({ _min: { fecha: true } }),
+        prisma.pagoProveedor.aggregate({ _min: { fecha: true } }),
+        prisma.cajaChicaEvento.aggregate({ _min: { fecha: true } }),
+        prisma.evento.aggregate({ _min: { fecha: true } }),
+        prisma.diaUtilero.aggregate({ _min: { createdAt: true } }),
+      ]);
+    const fechas = [
+      primerIngreso._min.fecha,
+      primerPago._min.fecha,
+      primeraCaja._min.fecha,
+      primerEvento._min.fecha,
+      primerDiaUtilero._min.createdAt,
+    ].filter((fecha): fecha is Date => fecha instanceof Date);
+    const primeraFecha = fechas.sort((a, b) => a.getTime() - b.getTime())[0];
+    desde = (primeraFecha ?? new Date()).toISOString().slice(0, 10);
+  }
 
   if (!desde || !hasta) {
     return NextResponse.json(
@@ -21,9 +43,15 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const fechaDesde = new Date(desde);
-  const fechaHasta = new Date(hasta);
-  fechaHasta.setHours(23, 59, 59, 999);
+  const fechaDesde = new Date(`${desde}T00:00:00`);
+  const fechaHasta = new Date(`${hasta}T23:59:59.999`);
+  if (
+    Number.isNaN(fechaDesde.getTime()) ||
+    Number.isNaN(fechaHasta.getTime()) ||
+    fechaDesde > fechaHasta
+  ) {
+    return NextResponse.json({ error: "El rango de fechas no es válido" }, { status: 400 });
+  }
 
   const idsMov = await idsPagosMovimientoEnRangoRaw(fechaDesde, fechaHasta);
   const pagos =
@@ -173,19 +201,101 @@ export async function GET(req: NextRequest) {
     })
     .sort((a, b) => b.egresos - a.egresos);
 
+  type MesHistorico = {
+    periodo: string;
+    ingresos: number;
+    pagosProveedores: number;
+    utileros: number;
+    cajaChica: number;
+    eventos: Set<string>;
+  };
+  const historicoMap = new Map<string, MesHistorico>();
+  const mesKey = (fecha: Date) =>
+    `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+  const ensureMes = (fecha: Date) => {
+    const periodo = mesKey(fecha);
+    const current = historicoMap.get(periodo);
+    if (current) return current;
+    const created: MesHistorico = {
+      periodo,
+      ingresos: 0,
+      pagosProveedores: 0,
+      utileros: 0,
+      cajaChica: 0,
+      eventos: new Set<string>(),
+    };
+    historicoMap.set(periodo, created);
+    return created;
+  };
+
+  for (const ingreso of ingresos) {
+    const mes = ensureMes(ingreso.fecha);
+    mes.ingresos += ingreso.monto;
+    mes.eventos.add(ingreso.eventoId);
+  }
+  for (const pago of pagos) {
+    const mes = ensureMes(pago.fecha);
+    mes.pagosProveedores += pago.monto;
+    mes.eventos.add(pago.eventoId);
+  }
+  for (const caja of cajaChica) {
+    if (!cajaSentidoEsEgreso(caja.sentido)) continue;
+    const mes = ensureMes(caja.fecha);
+    mes.cajaChica += caja.monto;
+    mes.eventos.add(caja.eventoId);
+  }
+  for (const dia of diasUtileros) {
+    const fechaEvento = dia.evento.fecha;
+    const fechaAtribucion =
+      fechaEvento >= fechaDesde && fechaEvento <= fechaHasta ? fechaEvento : dia.createdAt;
+    const mes = ensureMes(fechaAtribucion);
+    mes.utileros += dia.monto;
+    mes.eventos.add(dia.eventoId);
+  }
+
+  const cursor = new Date(fechaDesde.getFullYear(), fechaDesde.getMonth(), 1);
+  const ultimoMes = new Date(fechaHasta.getFullYear(), fechaHasta.getMonth(), 1);
+  while (cursor <= ultimoMes) {
+    ensureMes(cursor);
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  const historico = Array.from(historicoMap.values())
+    .sort((a, b) => a.periodo.localeCompare(b.periodo))
+    .map((mes) => {
+      const egresos = mes.pagosProveedores + mes.utileros + mes.cajaChica;
+      const balance = mes.ingresos - egresos;
+      return {
+        periodo: mes.periodo,
+        ingresos: mes.ingresos,
+        pagosProveedores: mes.pagosProveedores,
+        utileros: mes.utileros,
+        cajaChica: mes.cajaChica,
+        egresos,
+        balance,
+        eventos: mes.eventos.size,
+        margenPct: mes.ingresos > 0 ? (balance / mes.ingresos) * 100 : 0,
+      };
+    });
+
   return NextResponse.json({
+    modo,
     desde,
     hasta,
-    porRubro: Object.entries(porRubro).map(([nombre, data]) => ({
-      rubro: nombre,
-      total: data.total,
-      cantidad: data.pagos.length,
-    })),
-    porProveedor: Object.entries(porProveedor).map(([nombre, data]) => ({
-      proveedor: nombre,
-      total: data.total,
-      cantidad: data.pagos.length,
-    })),
+    porRubro: Object.entries(porRubro)
+      .map(([nombre, data]) => ({
+        rubro: nombre,
+        total: data.total,
+        cantidad: data.pagos.length,
+      }))
+      .sort((a, b) => b.total - a.total),
+    porProveedor: Object.entries(porProveedor)
+      .map(([nombre, data]) => ({
+        proveedor: nombre,
+        total: data.total,
+        cantidad: data.pagos.length,
+      }))
+      .sort((a, b) => b.total - a.total),
     totales: {
       pagosProveedores: totalPagos,
       utileros: totalUtileros,
@@ -195,8 +305,6 @@ export async function GET(req: NextRequest) {
       balance: totalIngresos - totalPagos - totalUtileros - totalCajaChica,
     },
     porEvento,
-    pagos,
-    diasUtileros,
-    ingresos,
+    historico,
   });
 }

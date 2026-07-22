@@ -119,10 +119,10 @@ export function IngresoForm({ eventoId }: { eventoId: string }) {
       <button
         type="submit"
         disabled={loading}
-        className="px-4 py-2.5 bg-white hover:bg-neutral-50 text-neutral-700 rounded-lg border border-neutral-200 font-medium text-sm shadow-sm hover:shadow transition-all disabled:opacity-50 flex items-center gap-2 min-w-[100px] justify-center"
+        className="flex min-w-[150px] items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-50"
       >
-        {loading ? <LoadingSpinner className="h-4 w-4" /> : null}
-        {loading ? "Guardando..." : "Agregar"}
+        {loading ? <LoadingSpinner className="h-4 w-4 text-white" /> : null}
+        {loading ? "Guardando..." : "Registrar ingreso"}
       </button>
     </form>
   );

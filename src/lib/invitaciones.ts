@@ -1,6 +1,6 @@
 import { randomBytes, createHash } from "crypto";
 import { prisma } from "./prisma";
-import { sendEmailResend } from "./email/resend";
+import { sendEmail } from "./email/mailer";
 
 /** Días de validez de una invitación. */
 export const INVITACION_TTL_DIAS = 7;
@@ -40,8 +40,8 @@ export function renderInvitacionEmail(params: { nombre: string; url: string }): 
 <meta name="color-scheme" content="light">
 <title>Confirmá tu cuenta</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f5f5f5;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f5f5;padding:32px 12px;">
+<body style="margin:0;padding:0;background-color:#f5f3ee;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f3ee;padding:32px 12px;">
   <tr>
     <td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e5e5;">
@@ -62,7 +62,7 @@ export function renderInvitacionEmail(params: { nombre: string; url: string }): 
         <!-- Body -->
         <tr>
           <td style="padding:36px 32px 8px 32px;font-family:Arial,sans-serif;">
-            <p style="margin:0 0 6px 0;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#0284c7;">Activá tu cuenta</p>
+            <p style="margin:0 0 6px 0;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#444443;">Activá tu cuenta</p>
             <h1 style="margin:0 0 16px 0;font-size:22px;font-weight:700;color:#0a0a0a;">Hola ${nombre},</h1>
             <p style="margin:0 0 24px 0;font-size:14px;line-height:1.6;color:#525252;">
               Fuiste invitado a <strong style="color:#0a0a0a;">Eventos HC</strong>. Para activar tu cuenta y definir tu contraseña, hacé clic en el botón de abajo.
@@ -85,7 +85,7 @@ export function renderInvitacionEmail(params: { nombre: string; url: string }): 
         <tr>
           <td style="padding:0 32px 28px 32px;font-family:Arial,sans-serif;">
             <p style="margin:0 0 6px 0;font-size:12px;color:#737373;">O copiá y pegá este enlace en tu navegador:</p>
-            <p style="margin:0;font-size:12px;color:#0284c7;word-break:break-all;">${url}</p>
+            <p style="margin:0;font-size:12px;color:#444443;word-break:break-all;">${url}</p>
           </td>
         </tr>
         <!-- Footer -->
@@ -134,7 +134,7 @@ export async function crearYEnviarInvitacion(user: { id: string; email: string; 
   const html = renderInvitacionEmail({ nombre, url });
 
   try {
-    await sendEmailResend({
+    await sendEmail({
       to: [user.email],
       subject,
       text,

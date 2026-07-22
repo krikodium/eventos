@@ -70,6 +70,9 @@ export default async function HomePage() {
   let egresos = 0;
   let balance = 0;
   let proveedoresConNombre: { nombre: string; monto: number; rubro: string }[] = [];
+  let proximoEvento: { id: string; nombre: string; cliente: string; fecha: Date; estado: string } | null = null;
+  let eventosProximos = 0;
+  let eventosActivos = 0;
   let tablesReady = false;
   let homeLoadError: string | null = null;
 
@@ -79,6 +82,7 @@ export default async function HomePage() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     const [
       count,
@@ -89,6 +93,9 @@ export default async function HomePage() {
       totalUtileros,
       pagosMovRaw,
       topProvRaw,
+      proximo,
+      proximosCount,
+      activosCount,
     ] = await Promise.all([
       prisma.evento.count(),
       prisma.evento.count({
@@ -104,6 +111,13 @@ export default async function HomePage() {
       prisma.diaUtilero.aggregate({ _sum: { monto: true } }),
       sumMovimientosProveedorGlobalRaw(),
       topProveedoresMovimientosRaw(5),
+      prisma.evento.findFirst({
+        where: { fecha: { gte: startOfToday } },
+        orderBy: { fecha: "asc" },
+        select: { id: true, nombre: true, cliente: true, fecha: true, estado: true },
+      }),
+      prisma.evento.count({ where: { fecha: { gte: startOfToday } } }),
+      prisma.evento.count({ where: { estado: { in: ["CONFIRMADO", "EN_CURSO"] } } }),
     ]);
 
     let cajaChicaSum = 0;
@@ -131,6 +145,9 @@ export default async function HomePage() {
     cajaChica = cajaChicaSum;
     egresos = pagos + utileros + cajaChica;
     balance = ingresos - egresos;
+    proximoEvento = proximo;
+    eventosProximos = proximosCount;
+    eventosActivos = activosCount;
     tablesReady = true;
 
     const topProveedores =
@@ -195,9 +212,71 @@ export default async function HomePage() {
     return `Hace ${Math.abs(diff)} días`;
   };
   const proveedorMax = Math.max(...proveedoresConNombre.map((p) => p.monto), 1);
+  const margenPct = ingresos > 0 ? Math.round((balance / ingresos) * 100) : 0;
+  const margenBarWidth = Math.max(0, Math.min(100, margenPct));
+
+  const accentStyles: Record<string, { tint: string; chip: string; bar: string }> = {
+    slate: { tint: "from-white to-slate-50", chip: "bg-slate-100 text-slate-600", bar: "from-slate-300 to-slate-400" },
+    teal: { tint: "from-white to-teal-50/70", chip: "bg-teal-50 text-teal-700", bar: "from-teal-300 to-teal-500" },
+    emerald: { tint: "from-white to-emerald-50/70", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-300 to-emerald-500" },
+    orange: { tint: "from-white to-orange-50/70", chip: "bg-orange-50 text-orange-700", bar: "from-orange-300 to-orange-500" },
+    violet: { tint: "from-white to-violet-50/70", chip: "bg-violet-50 text-violet-700", bar: "from-violet-300 to-violet-500" },
+    rose: { tint: "from-white to-rose-50/70", chip: "bg-rose-50 text-rose-700", bar: "from-rose-300 to-rose-500" },
+  };
+
+  const kpiCards: {
+    label: string;
+    value: string | number;
+    sub: string;
+    accent: keyof typeof accentStyles;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      label: "Total eventos",
+      value: eventosCount,
+      sub: "Base completa",
+      accent: "slate",
+      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />,
+    },
+    {
+      label: "Este mes",
+      value: eventosMes,
+      sub: "Calendario actual",
+      accent: "teal",
+      icon: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 6v6l4 2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></>,
+    },
+    {
+      label: "Ingresos",
+      value: fmtMoney(ingresos),
+      sub: "Cobros registrados",
+      accent: "emerald",
+      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="m7 11 5-5 5 5M12 6v12" />,
+    },
+    {
+      label: "Egresos",
+      value: fmtMoney(egresos),
+      sub: "Pagos y gastos",
+      accent: "orange",
+      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="m7 13 5 5 5-5M12 6v12" />,
+    },
+    {
+      label: "Caja chica",
+      value: fmtMoney(cajaChica),
+      sub: "Egresos menores",
+      accent: "violet",
+      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12H3m18 0v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6m18 0-2.5-6h-13L3 12" />,
+    },
+    {
+      label: "Balance",
+      value: `${balance >= 0 ? "+" : ""}${fmtMoney(balance)}`,
+      sub: "Ingresos menos egresos",
+      accent: balance >= 0 ? "emerald" : "rose",
+      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 19V5m0 14h16M8 15l3-3 3 2 5-7" />,
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#f8f8f8]">
+    <div className="min-h-screen bg-background">
       <Navbar />
       {!tablesReady && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-4 text-sm text-amber-950 max-w-6xl mx-auto">
@@ -256,25 +335,93 @@ export default async function HomePage() {
                   </Link>
                 </div>
               </div>
-              <div className="mt-7 grid sm:grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-                  <p className="text-xs font-medium text-neutral-700">Resultado actual</p>
-                  <p
-                    className={`mt-2 text-2xl font-semibold tabular-nums ${
-                      balance >= 0 ? "text-emerald-900" : "text-rose-800"
-                    }`}
-                  >
-                    {balance >= 0 ? "+" : ""}
-                    {fmtMoney(balance)}
-                  </p>
+              <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                {/* Próximo evento */}
+                <Link
+                  href={proximoEvento ? `/eventos/${proximoEvento.id}` : "/eventos"}
+                  className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
+                >
+                  <span className="absolute inset-y-0 left-0 w-1 bg-teal-500" />
+                  <div className="pl-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </span>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-teal-700">Próximo evento</p>
+                    </div>
+                    {proximoEvento ? (
+                      <div className="mt-3">
+                        <p className="truncate text-base font-semibold text-neutral-900">{proximoEvento.nombre}</p>
+                        <p className="truncate text-xs text-neutral-500">{proximoEvento.cliente}</p>
+                        <div className="mt-3 flex items-center justify-between gap-2">
+                          <span className="text-xs font-medium text-neutral-600">{fmtDate(proximoEvento.fecha)}</span>
+                          <span className="rounded-full bg-teal-50 px-2.5 py-1 text-[11px] font-semibold text-teal-700">
+                            {diasHasta(proximoEvento.fecha)}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-sm text-neutral-400">Sin eventos próximos cargados</p>
+                    )}
+                  </div>
+                </Link>
+
+                {/* Resultado del negocio */}
+                <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+                  <span className={`absolute inset-y-0 left-0 w-1 ${balance >= 0 ? "bg-emerald-500" : "bg-rose-500"}`} />
+                  <div className="pl-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${balance >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 19V5m0 14h16M8 15l3-3 3 2 5-7" />
+                        </svg>
+                      </span>
+                      <p className={`text-[11px] font-semibold uppercase tracking-wider ${balance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                        Resultado del negocio
+                      </p>
+                    </div>
+                    <p className={`mt-3 text-2xl font-semibold tabular-nums ${balance >= 0 ? "text-emerald-900" : "text-rose-800"}`}>
+                      {balance >= 0 ? "+" : ""}{fmtMoney(balance)}
+                    </p>
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between text-[11px] text-neutral-500">
+                        <span className="font-medium">{margenPct}% de margen</span>
+                        <span>Ingresos {fmtMoney(ingresos)}</span>
+                      </div>
+                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+                        <div
+                          className={`h-full rounded-full ${balance >= 0 ? "bg-emerald-500" : "bg-rose-500"}`}
+                          style={{ width: `${balance >= 0 ? margenBarWidth : 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-                  <p className="text-xs font-medium text-neutral-700">Eventos este mes</p>
-                  <p className="mt-2 text-2xl font-semibold tabular-nums text-neutral-950">{eventosMes}</p>
-                </div>
-                <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-                  <p className="text-xs font-medium text-neutral-700">Últimos registros</p>
-                  <p className="mt-2 text-2xl font-semibold tabular-nums text-neutral-950">{eventosRecientes.length}</p>
+
+                {/* Agenda operativa */}
+                <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+                  <span className="absolute inset-y-0 left-0 w-1 bg-sky-500" />
+                  <div className="pl-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 6v6l4 2" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                      </span>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-700">Agenda operativa</p>
+                    </div>
+                    <div className="mt-3 flex items-baseline gap-2">
+                      <p className="text-2xl font-semibold tabular-nums text-neutral-900">{eventosProximos}</p>
+                      <p className="text-xs text-neutral-500">eventos por venir</p>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-600">{eventosActivos} activos</span>
+                      <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-600">{eventosMes} este mes</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -308,101 +455,29 @@ export default async function HomePage() {
         {isAdmin && (
           <>
             <section className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
-              <div className="group bg-white rounded-2xl p-4 border border-neutral-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-neutral-400 text-[11px] font-semibold uppercase tracking-wider">
-                    Total eventos
-                  </p>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 group-hover:bg-neutral-900 group-hover:text-white transition-colors">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </span>
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">{eventosCount}</p>
-                <p className="text-[11px] text-neutral-400 mt-1">Base completa</p>
-              </div>
-              <div className="group bg-white rounded-2xl p-4 border border-neutral-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-neutral-400 text-[11px] font-semibold uppercase tracking-wider">
-                    Este mes
-                  </p>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 6v6l4 2" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                  </span>
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">{eventosMes}</p>
-                <p className="text-[11px] text-neutral-400 mt-1">Calendario actual</p>
-              </div>
-              <div className="group bg-white rounded-2xl p-4 border border-neutral-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-neutral-400 text-[11px] font-semibold uppercase tracking-wider">
-                    Ingresos
-                  </p>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="m7 11 5-5 5 5M12 6v12" />
-                    </svg>
-                  </span>
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">
-                  {fmtMoney(ingresos)}
-                </p>
-                <p className="text-[11px] text-neutral-400 mt-1">Cobros registrados</p>
-              </div>
-              <div className="group bg-white rounded-2xl p-4 border border-neutral-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-neutral-400 text-[11px] font-semibold uppercase tracking-wider">
-                    Egresos
-                  </p>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="m7 13 5 5 5-5M12 6v12" />
-                    </svg>
-                  </span>
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">
-                  {fmtMoney(egresos)}
-                </p>
-                <p className="text-[11px] text-neutral-400 mt-1">Pagos y gastos</p>
-              </div>
-              <div className="group bg-white rounded-2xl p-4 border border-neutral-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-neutral-400 text-[11px] font-semibold uppercase tracking-wider">
-                    Caja chica
-                  </p>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12H3m18 0v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6m18 0-2.5-6h-13L3 12" />
-                    </svg>
-                  </span>
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">
-                  {fmtMoney(cajaChica)}
-                </p>
-                <p className="text-[11px] text-neutral-400 mt-1">Egresos menores</p>
-              </div>
-              <div className={`rounded-2xl p-4 border shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all ${balance >= 0 ? "bg-emerald-50/60 border-emerald-100" : "bg-rose-50/60 border-rose-100"}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <p className={`text-[11px] font-semibold uppercase tracking-wider ${balance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
-                    Balance
-                  </p>
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${balance >= 0 ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 19V5m0 14h16M8 15l3-3 3 2 5-7" />
-                    </svg>
-                  </span>
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">
-                  {balance >= 0 ? "+" : ""}{fmtMoney(balance)}
-                </p>
-                <p className={`text-[11px] mt-1 ${balance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
-                  Ingresos menos egresos
-                </p>
-              </div>
+              {kpiCards.map((card) => {
+                const a = accentStyles[card.accent];
+                return (
+                  <div
+                    key={card.label}
+                    className={`group relative overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br ${a.tint} p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-neutral-500 text-[11px] font-semibold uppercase tracking-wider">
+                        {card.label}
+                      </p>
+                      <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${a.chip} transition-transform group-hover:scale-110`}>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {card.icon}
+                        </svg>
+                      </span>
+                    </div>
+                    <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">{card.value}</p>
+                    <p className="text-[11px] text-neutral-400 mt-1">{card.sub}</p>
+                    <div className={`mt-3 h-1 w-full rounded-full bg-gradient-to-r ${a.bar} opacity-70 transition-opacity group-hover:opacity-100`} />
+                  </div>
+                );
+              })}
             </section>
 
             <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 mb-8">

@@ -75,7 +75,6 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
     .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())[0];
   const eventosActivos = todosEventos.filter((e) => ["CONFIRMADO", "EN_CURSO"].includes(e.estado)).length;
   const eventosBorrador = todosEventos.filter((e) => e.estado === "BORRADOR").length;
-  const eventosFacturados = todosEventos.filter((e) => e.estado === "FACTURADO").length;
   const eventosConActividad = todosEventos.filter(
     (e) => e._count.ingresos + e._count.pagosProveedores + e._count.diasUtileros > 0
   ).length;
@@ -97,8 +96,45 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
     return `Hace ${Math.abs(diff)} días`;
   };
 
+  const estadoBar = (estado: string) => {
+    switch (estado) {
+      case "FACTURADO":
+        return "bg-emerald-500";
+      case "FINALIZADO":
+        return "bg-neutral-400";
+      case "EN_CURSO":
+        return "bg-sky-500";
+      case "CONFIRMADO":
+        return "bg-teal-500";
+      default:
+        return "bg-amber-400";
+    }
+  };
+
+  const accentStyles: Record<string, { tint: string; chip: string; bar: string }> = {
+    slate: { tint: "from-white to-slate-50", chip: "bg-slate-100 text-slate-600", bar: "from-slate-300 to-slate-400" },
+    teal: { tint: "from-white to-teal-50/70", chip: "bg-teal-50 text-teal-700", bar: "from-teal-300 to-teal-500" },
+    emerald: { tint: "from-white to-emerald-50/70", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-300 to-emerald-500" },
+    amber: { tint: "from-white to-amber-50/70", chip: "bg-amber-50 text-amber-700", bar: "from-amber-300 to-amber-500" },
+    violet: { tint: "from-white to-violet-50/70", chip: "bg-violet-50 text-violet-700", bar: "from-violet-300 to-violet-500" },
+  };
+
+  const kpiCards: {
+    label: string;
+    value: string | number;
+    accent: keyof typeof accentStyles;
+    icon: React.ReactNode;
+  }[] = [
+    { label: "Eventos cargados", value: todosEventos.length, accent: "slate", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /> },
+    { label: "Confirmados / en curso", value: eventosActivos, accent: "teal", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="m5 13 4 4L19 7" /> },
+    { label: "Próximos eventos", value: proximos.length, accent: "emerald", icon: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 6v6l4 2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></> },
+    { label: "Borradores por cerrar", value: eventosBorrador, accent: "amber", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" /> },
+    { label: "Con actividad", value: eventosConActividad, accent: "violet", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M3 12h4l3 8 4-16 3 8h4" /> },
+    { label: "Presupuesto total", value: fmtMoney(totalPresupuestado), accent: "emerald", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 3v18m5-14H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H6" /> },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#f8f8f8]">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section className="rounded-3xl border border-neutral-200 bg-white shadow-sm mb-6">
@@ -134,27 +170,32 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-8">
-              <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-                <p className="text-xs font-medium text-neutral-700">Eventos cargados</p>
-                <p className="mt-2 text-3xl font-semibold tabular-nums text-neutral-950">{todosEventos.length}</p>
-              </div>
-              <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-                <p className="text-xs font-medium text-neutral-700">Confirmados / en curso</p>
-                <p className="mt-2 text-3xl font-semibold tabular-nums text-neutral-950">{eventosActivos}</p>
-              </div>
-              <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-                <p className="text-xs font-medium text-neutral-700">Próximos eventos</p>
-                <p className="mt-2 text-3xl font-semibold tabular-nums text-neutral-950">{proximos.length}</p>
-              </div>
-              <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-                <p className="text-xs font-medium text-neutral-700">Presupuesto total</p>
-                <p className="mt-2 text-3xl font-semibold tabular-nums text-neutral-950">
-                  {fmtMoney(totalPresupuestado)}
-                </p>
-              </div>
-            </div>
           </div>
+        </section>
+
+        <section className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-6">
+          {kpiCards.map((card) => {
+            const a = accentStyles[card.accent];
+            return (
+              <div
+                key={card.label}
+                className={`group relative overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br ${a.tint} p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-neutral-500 text-[11px] font-semibold uppercase tracking-wider leading-tight">
+                    {card.label}
+                  </p>
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${a.chip} transition-transform group-hover:scale-110`}>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {card.icon}
+                    </svg>
+                  </span>
+                </div>
+                <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">{card.value}</p>
+                <div className={`mt-3 h-1 w-full rounded-full bg-gradient-to-r ${a.bar} opacity-70 transition-opacity group-hover:opacity-100`} />
+              </div>
+            );
+          })}
         </section>
 
         <div className="grid lg:grid-cols-[1fr_360px] gap-5 mb-6">
@@ -272,21 +313,6 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
           </aside>
         </div>
 
-        <section className="grid sm:grid-cols-3 gap-3 mb-6">
-          <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-            <p className="text-xs font-medium text-neutral-700">Borradores por cerrar</p>
-            <p className="mt-1 text-2xl font-semibold text-neutral-950 tabular-nums">{eventosBorrador}</p>
-          </div>
-          <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-            <p className="text-xs font-medium text-neutral-700">Facturados</p>
-            <p className="mt-1 text-2xl font-semibold text-neutral-950 tabular-nums">{eventosFacturados}</p>
-          </div>
-          <div className="rounded-2xl border border-neutral-300 bg-neutral-200 p-4 shadow-inner">
-            <p className="text-xs font-medium text-neutral-700">Con actividad registrada</p>
-            <p className="mt-1 text-2xl font-semibold text-neutral-950 tabular-nums">{eventosConActividad}</p>
-          </div>
-        </section>
-
         <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm">
           <div className="px-5 py-4 border-b border-neutral-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
@@ -298,135 +324,88 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
             <span className="text-xs text-neutral-400">Ordenados por fecha más reciente</span>
           </div>
 
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-[11px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100 bg-neutral-50/70">
-                  <th className="py-3 px-5">Evento</th>
-                  <th className="py-3 px-5">Fecha</th>
-                  <th className="py-3 px-5">Cliente</th>
-                  <th className="py-3 px-5">Presupuesto</th>
-                  <th className="py-3 px-5">Actividad</th>
-                  <th className="py-3 px-5">Estado</th>
-                  <th className="py-3 px-5"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
+          {eventos.length > 0 && (
+            <div className="p-4 sm:p-5">
+              <div className="grid gap-3 lg:grid-cols-2">
                 {eventos.map((e) => {
                   const actividad = e._count.ingresos + e._count.pagosProveedores + e._count.diasUtileros;
+                  const ubicacion = [e.localidad, e.provincia].filter(Boolean).join(", ");
                   return (
-                    <tr key={e.id} className="hover:bg-neutral-50/80 transition-colors">
-                      <td className="py-4 px-5">
-                        <div className="flex items-start gap-3">
-                          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-sm font-semibold text-neutral-700">
-                            {e.tipo === "CORPORATIVO" ? "CO" : "PA"}
+                    <div
+                      key={e.id}
+                      className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
+                    >
+                      <span className={`absolute inset-y-0 left-0 w-1 ${estadoBar(e.estado)}`} />
+                      <div className="pl-2.5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex min-w-0 items-start gap-3">
+                            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${e.tipo === "CORPORATIVO" ? "bg-sky-50 text-sky-700" : "bg-violet-50 text-violet-700"}`}>
+                              {e.tipo === "CORPORATIVO" ? "CO" : "PA"}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-neutral-950">{e.nombre}</p>
+                              <p className="mt-0.5 truncate text-xs text-neutral-500">
+                                {tipos[e.tipo] ?? e.tipo}
+                                {ubicacion && <> · {ubicacion}</>}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-semibold text-neutral-950">{e.nombre}</p>
-                            <p className="text-xs text-neutral-500 mt-1">
-                              {tipos[e.tipo] ?? e.tipo}
-                              {(e.localidad || e.provincia) && (
-                                <> · {[e.localidad, e.provincia].filter(Boolean).join(", ")}</>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-5">
-                        <p className="text-sm font-medium text-neutral-800 tabular-nums">{fmtDate(e.fecha)}</p>
-                        <p className="text-xs text-neutral-400 mt-1">{diasHasta(e.fecha)}</p>
-                      </td>
-                      <td className="py-4 px-5">
-                        <p className="text-sm text-neutral-700">{e.cliente}</p>
-                        {e.organizadora && (
-                          <p className="text-xs text-neutral-400 mt-1">Org. {e.organizadora}</p>
-                        )}
-                      </td>
-                      <td className="py-4 px-5">
-                        <p className="text-sm font-semibold text-neutral-900 tabular-nums">
-                          {fmtMoney(e.presupuestoTotal ?? 0)}
-                        </p>
-                        {e.presupuestoNro && <p className="text-xs text-neutral-400 mt-1">#{e.presupuestoNro}</p>}
-                      </td>
-                      <td className="py-4 px-5">
-                        <div className="flex flex-wrap gap-1.5">
-                          <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] font-medium text-neutral-600">
-                            {e._count.ingresos} ingresos
-                          </span>
-                          <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] font-medium text-neutral-600">
-                            {e._count.pagosProveedores} pagos
-                          </span>
-                          <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] font-medium text-neutral-600">
-                            {e._count.diasUtileros} utileros
+                          <span className={`inline-flex shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${estadoStyle(e.estado)}`}>
+                            {estados[e.estado] ?? e.estado}
                           </span>
                         </div>
-                        {actividad === 0 && (
-                          <p className="text-[11px] text-amber-600 mt-2">Sin movimientos cargados</p>
-                        )}
-                      </td>
-                      <td className="py-4 px-5">
-                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${estadoStyle(e.estado)}`}>
-                          {estados[e.estado] ?? e.estado}
-                        </span>
-                      </td>
-                      <td className="py-4 px-5 text-right">
-                        <div className="flex justify-end gap-2">
-                          <Link
-                            href={`/eventos/${e.id}`}
-                            className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
-                          >
-                            Ver
-                          </Link>
-                          {isAdmin && (
+
+                        <div className="mt-4 grid grid-cols-3 gap-2">
+                          <div className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-2.5">
+                            <p className="text-[10px] uppercase tracking-wider text-neutral-400">Fecha</p>
+                            <p className="mt-0.5 text-xs font-semibold tabular-nums text-neutral-800">{fmtDate(e.fecha)}</p>
+                            <p className="text-[10px] text-neutral-400">{diasHasta(e.fecha)}</p>
+                          </div>
+                          <div className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-2.5">
+                            <p className="text-[10px] uppercase tracking-wider text-neutral-400">Cliente</p>
+                            <p className="mt-0.5 truncate text-xs font-semibold text-neutral-800">{e.cliente}</p>
+                            {e.organizadora && <p className="truncate text-[10px] text-neutral-400">Org. {e.organizadora}</p>}
+                          </div>
+                          <div className="rounded-xl border border-neutral-100 bg-neutral-50/70 p-2.5">
+                            <p className="text-[10px] uppercase tracking-wider text-neutral-400">Presupuesto</p>
+                            <p className="mt-0.5 text-xs font-semibold tabular-nums text-neutral-800">{fmtMoney(e.presupuestoTotal ?? 0)}</p>
+                            {e.presupuestoNro && <p className="text-[10px] text-neutral-400">#{e.presupuestoNro}</p>}
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex flex-wrap gap-1.5">
+                            <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] font-medium text-neutral-600">{e._count.ingresos} ingresos</span>
+                            <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] font-medium text-neutral-600">{e._count.pagosProveedores} pagos</span>
+                            <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] font-medium text-neutral-600">{e._count.diasUtileros} utileros</span>
+                            {actividad === 0 && (
+                              <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-600">Sin movimientos</span>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
                             <Link
-                              href={`/eventos/${e.id}/editar`}
-                              className="rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-neutral-900 transition-colors"
+                              href={`/eventos/${e.id}`}
+                              className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 group-hover:border-neutral-300"
                             >
-                              Editar
+                              Ver
                             </Link>
-                          )}
+                            {isAdmin && (
+                              <Link
+                                href={`/eventos/${e.id}/editar`}
+                                className="rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-400 transition-colors hover:text-neutral-900"
+                              >
+                                Editar
+                              </Link>
+                            )}
+                          </div>
                         </div>
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="md:hidden divide-y divide-neutral-100">
-            {eventos.map((e) => (
-              <article key={e.id} className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-neutral-950">{e.nombre}</p>
-                    <p className="text-xs text-neutral-500 mt-1">{e.cliente}</p>
-                  </div>
-                  <span className={`shrink-0 inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${estadoStyle(e.estado)}`}>
-                    {estados[e.estado] ?? e.estado}
-                  </span>
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                  <div className="rounded-xl bg-neutral-50 p-3">
-                    <p className="text-neutral-400">Fecha</p>
-                    <p className="mt-1 font-medium text-neutral-800">{fmtDate(e.fecha)}</p>
-                  </div>
-                  <div className="rounded-xl bg-neutral-50 p-3">
-                    <p className="text-neutral-400">Presupuesto</p>
-                    <p className="mt-1 font-medium text-neutral-800">{fmtMoney(e.presupuestoTotal ?? 0)}</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <p className="text-xs text-neutral-500">
-                    {e._count.ingresos} ingresos · {e._count.pagosProveedores} pagos · {e._count.diasUtileros} utileros
-                  </p>
-                  <Link href={`/eventos/${e.id}`} className="text-xs font-semibold text-neutral-900">
-                    Ver →
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
+              </div>
+            </div>
+          )}
 
           {eventos.length === 0 && (
             <div className="py-16 px-6 text-center">

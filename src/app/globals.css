@@ -1,14 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f5f7;
-  --foreground: #14161a;
+  --background: #f5f3ee;
+  --foreground: #191918;
+  --surface: #fbfaf7;
+  --border-subtle: #dedbd3;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-border-subtle: var(--border-subtle);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * Paleta principal inspirada en el panel administrativo de referencia.
+   * Conservamos los nombres sky/cyan para no duplicar estilos en todos los
+   * componentes, pero su representación visual es gris cálida y carbón.
+   */
+  --color-sky-50: #f4f3f0;
+  --color-sky-100: #e9e7e2;
+  --color-sky-200: #d7d4cd;
+  --color-sky-300: #bbb8b1;
+  --color-sky-400: #92918d;
+  --color-sky-500: #686866;
+  --color-sky-600: #484847;
+  --color-sky-700: #343433;
+  --color-sky-800: #272726;
+  --color-sky-900: #1d1d1c;
+  --color-sky-950: #121211;
+  --color-cyan-50: #f4f3f0;
+  --color-cyan-100: #e9e7e2;
+  --color-cyan-200: #d7d4cd;
+  --color-cyan-300: #bbb8b1;
+  --color-cyan-400: #92918d;
+  --color-cyan-500: #686866;
+  --color-cyan-600: #484847;
+  --color-cyan-700: #343433;
+  --color-cyan-800: #272726;
+  --color-cyan-900: #1d1d1c;
+  --color-cyan-950: #121211;
 }
 
 body {

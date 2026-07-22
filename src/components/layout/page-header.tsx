@@ -10,11 +10,11 @@ type PageHeaderProps = {
 
 export function PageHeader({ eyebrow, title, description, status, actions }: PageHeaderProps) {
   return (
-    <header className="relative mb-6 overflow-hidden rounded-2xl border border-neutral-200 bg-white px-6 py-6 shadow-sm sm:px-7 sm:py-7">
-      <div className="pointer-events-none absolute -right-20 -top-28 h-64 w-64 rounded-full bg-sky-100/70 blur-3xl" />
+    <header className="relative mb-6 overflow-hidden rounded-2xl border border-[#dedbd3] bg-[#fbfaf7] px-6 py-6 shadow-[0_8px_24px_rgba(36,35,32,0.04)] sm:px-7 sm:py-7">
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-neutral-800" />
       <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-sky-600">{eyebrow}</p>
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-500">{eyebrow}</p>
         <h1 className="text-3xl font-semibold tracking-[-0.025em] text-neutral-950 sm:text-[34px]">{title}</h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-neutral-500">{description}</p>
       </div>

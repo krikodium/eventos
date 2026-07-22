@@ -20,10 +20,10 @@ export function AuthShell({
   children,
 }: AuthShellProps) {
   return (
-    <main className="grid min-h-screen bg-neutral-50 lg:grid-cols-[minmax(400px,0.86fr)_1.14fr]">
+    <main className="grid min-h-screen bg-background lg:grid-cols-[minmax(400px,0.86fr)_1.14fr]">
       <section className="relative hidden overflow-hidden bg-[#0b0d10] p-12 text-white lg:flex lg:flex-col lg:justify-between xl:p-16">
         <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-sky-500/15 blur-3xl" />
-        <div className="absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-neutral-500/10 blur-3xl" />
         <div className="relative flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-lg font-black text-neutral-950 shadow-xl shadow-white/10">HC</span>
           <div>
@@ -47,13 +47,13 @@ export function AuthShell({
       </section>
 
       <section className="relative flex items-center justify-center px-4 py-12 sm:px-8">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-cyan-400 to-indigo-500 lg:hidden" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-neutral-900 via-neutral-600 to-neutral-300 lg:hidden" />
         <div className="w-full max-w-md">
           <div className="mb-6 flex items-center gap-3 lg:hidden">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-950 text-sm font-black text-white">HC</span>
             <div><p className="text-sm font-semibold text-neutral-950">Eventos HC</p><p className="text-xs text-neutral-500">Gestión integral</p></div>
           </div>
-          <div className="rounded-3xl border border-neutral-200 bg-white p-7 shadow-2xl shadow-neutral-200/60 sm:p-9">
+          <div className="rounded-3xl border border-[#dedbd3] bg-[#fbfaf7] p-7 shadow-2xl shadow-neutral-300/40 sm:p-9">
             <div className="mb-8">
               <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-600">{eyebrow}</p>
               <h2 className="text-3xl font-semibold tracking-tight text-neutral-950">{title}</h2>

@@ -67,8 +67,29 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
     PARTICULAR: "Particular",
   };
 
+  const kpiAccent: Record<string, { tint: string; chip: string; bar: string }> = {
+    emerald: { tint: "from-white to-emerald-50/70", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-300 to-emerald-500" },
+    orange: { tint: "from-white to-orange-50/70", chip: "bg-orange-50 text-orange-700", bar: "from-orange-300 to-orange-500" },
+    violet: { tint: "from-white to-violet-50/70", chip: "bg-violet-50 text-violet-700", bar: "from-violet-300 to-violet-500" },
+    amber: { tint: "from-white to-amber-50/70", chip: "bg-amber-50 text-amber-700", bar: "from-amber-300 to-amber-500" },
+    rose: { tint: "from-white to-rose-50/70", chip: "bg-rose-50 text-rose-700", bar: "from-rose-300 to-rose-500" },
+  };
+
+  const kpiEvento: {
+    label: string;
+    value: number;
+    accent: keyof typeof kpiAccent;
+    sub?: string;
+    icon: React.ReactNode;
+  }[] = [
+    { label: "Ingresos", value: totalIngresos, accent: "emerald", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="m7 11 5-5 5 5M12 6v12" /> },
+    { label: "Proveedores", value: totalPagos, accent: "orange", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M3 7h13v10H3zM16 10h3l2 3v4h-5m-6 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" /> },
+    { label: "Utileros", value: totalUtileros, accent: "violet", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M17 20h5v-1a4 4 0 0 0-4-4h-1m-4 5v-1a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v1h11Zm-2-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm8 1a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" /> },
+    { label: "Caja chica", value: totalCajaChica, accent: "amber", sub: "Solo egresos (equiv. ARS si hay TC)", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12H3m18 0v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6m18 0-2.5-6h-13L3 12" /> },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#f8f8f8]">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -155,46 +176,40 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
             <section className="mb-8">
               <h2 className="sr-only">Resumen financiero</h2>
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-                <div className="bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-                  <p className="text-neutral-500 text-xs font-semibold uppercase tracking-wider mb-1">
-                    Ingresos
+                {kpiEvento.map((card) => {
+                  const a = kpiAccent[card.accent];
+                  return (
+                    <div
+                      key={card.label}
+                      className={`group relative overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br ${a.tint} p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-5`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{card.label}</p>
+                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${a.chip} transition-transform group-hover:scale-110`}>
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">{card.icon}</svg>
+                        </span>
+                      </div>
+                      <p className="mt-3 text-xl font-bold tabular-nums text-neutral-900 sm:text-2xl">
+                        ${card.value.toLocaleString("es-AR")}
+                      </p>
+                      {card.sub && <p className="mt-1 text-[11px] text-neutral-400">{card.sub}</p>}
+                      <div className={`mt-3 h-1 w-full rounded-full bg-gradient-to-r ${a.bar} opacity-70 transition-opacity group-hover:opacity-100`} />
+                    </div>
+                  );
+                })}
+                <div className={`group relative overflow-hidden rounded-2xl border p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-5 col-span-2 lg:col-span-1 ${balance >= 0 ? "border-emerald-100 bg-gradient-to-br from-white to-emerald-50" : "border-rose-100 bg-gradient-to-br from-white to-rose-50"}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className={`text-[11px] font-semibold uppercase tracking-wider ${balance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>Balance</p>
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${balance >= 0 ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 19V5m0 14h16M8 15l3-3 3 2 5-7" />
+                      </svg>
+                    </span>
+                  </div>
+                  <p className={`mt-3 text-xl font-bold tabular-nums sm:text-2xl ${balance >= 0 ? "text-emerald-900" : "text-rose-800"}`}>
+                    {balance < 0 ? "-$" : "$"}{Math.abs(balance).toLocaleString("es-AR")}
                   </p>
-                  <p className="text-xl sm:text-2xl font-bold text-neutral-900 tabular-nums">
-                    ${totalIngresos.toLocaleString("es-AR")}
-                  </p>
-                </div>
-                <div className="bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-                  <p className="text-neutral-500 text-xs font-semibold uppercase tracking-wider mb-1">
-                    Proveedores
-                  </p>
-                  <p className="text-xl sm:text-2xl font-bold text-neutral-900 tabular-nums">
-                    ${totalPagos.toLocaleString("es-AR")}
-                  </p>
-                </div>
-                <div className="bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-                  <p className="text-neutral-500 text-xs font-semibold uppercase tracking-wider mb-1">
-                    Utileros
-                  </p>
-                  <p className="text-xl sm:text-2xl font-bold text-neutral-900 tabular-nums">
-                    ${totalUtileros.toLocaleString("es-AR")}
-                  </p>
-                </div>
-                <div className="bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-                  <p className="text-neutral-500 text-xs font-semibold uppercase tracking-wider mb-1">
-                    Caja chica
-                  </p>
-                  <p className="text-xl sm:text-2xl font-bold text-neutral-900 tabular-nums">
-                    ${totalCajaChica.toLocaleString("es-AR")}
-                  </p>
-                  <p className="text-neutral-400 text-[11px] mt-1">Solo egresos (equiv. ARS si hay TC)</p>
-                </div>
-                <div className="bg-white rounded-xl p-4 sm:p-5 border border-neutral-200 shadow-sm hover:shadow-md transition-shadow col-span-2 lg:col-span-1">
-                  <p className="text-neutral-500 text-xs font-semibold uppercase tracking-wider mb-1">
-                    Balance
-                  </p>
-                  <p className="text-xl sm:text-2xl font-bold tabular-nums text-neutral-900">
-                    ${balance.toLocaleString("es-AR")}
-                  </p>
+                  <div className={`mt-3 h-1 w-full rounded-full bg-gradient-to-r opacity-70 transition-opacity group-hover:opacity-100 ${balance >= 0 ? "from-emerald-300 to-emerald-500" : "from-rose-300 to-rose-500"}`} />
                 </div>
               </div>
             </section>

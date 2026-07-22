@@ -122,11 +122,6 @@ export function CajaChicaForm({ eventoId, tipoCambioUsd, movimientos, nombreUsua
     "w-full px-3 py-2 rounded-lg bg-white border border-neutral-200 text-neutral-900 text-sm placeholder:text-neutral-400 focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300 transition-colors";
   const labelAdmin = "block text-xs font-medium text-neutral-600 mb-1.5";
 
-  const SENTIDO_OPTIONS = [
-    { value: CAJA_SENTIDO_INGRESO, label: "Ingreso a caja" },
-    { value: CAJA_SENTIDO_EGRESO, label: "Egreso de caja" },
-  ];
-
   const alertaTcOperativo = faltaTc && (
     <p className="mt-4 text-amber-800 text-sm rounded-lg bg-amber-50 border border-amber-200/80 px-3 py-2.5">
       Hay movimientos en USD y falta el tipo de cambio en el evento. Cargalo arriba en &quot;Tipo cambio USD&quot; para
@@ -140,30 +135,27 @@ export function CajaChicaForm({ eventoId, tipoCambioUsd, movimientos, nombreUsua
     </p>
   );
 
+  const saldoPositivo = !faltaTc && (saldoArs as number) >= 0;
   const statsGrid = (
     <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div className="rounded-lg bg-neutral-100/90 border border-neutral-200 p-4">
-        <p className="text-neutral-600 text-[11px] font-semibold uppercase tracking-wider">Ingresos (equiv. ARS)</p>
-        <p className="text-neutral-900 text-2xl font-bold tabular-nums mt-1">
+      <div className="rounded-xl border border-neutral-200 bg-gradient-to-br from-white to-emerald-50/60 p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Ingresos (equiv. ARS)</p>
+        <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-700">
           {!faltaTc ? fmtArs(ingresosArs as number) : "—"}
         </p>
       </div>
-      <div className="rounded-lg bg-neutral-100/90 border border-neutral-200 p-4">
-        <p className="text-neutral-600 text-[11px] font-semibold uppercase tracking-wider">Egresos (equiv. ARS)</p>
-        <p className="text-neutral-900 text-2xl font-bold tabular-nums mt-1">
+      <div className="rounded-xl border border-neutral-200 bg-gradient-to-br from-white to-orange-50/60 p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Egresos (equiv. ARS)</p>
+        <p className="mt-1 text-2xl font-bold tabular-nums text-orange-700">
           {!faltaTc ? fmtArs(egresosArs as number) : "—"}
         </p>
       </div>
-      <div className="rounded-lg bg-neutral-50 border border-neutral-200 p-4">
-        <p className="text-neutral-600 text-[11px] font-semibold uppercase tracking-wider">Saldo (equiv. ARS)</p>
-        <p
-          className={`text-2xl font-bold tabular-nums mt-1 ${
-            faltaTc ? "text-neutral-400" : "text-neutral-900"
-          }`}
-        >
+      <div className={`rounded-xl border p-4 ${saldoPositivo ? "border-emerald-100 bg-gradient-to-br from-white to-emerald-50" : faltaTc ? "border-neutral-200 bg-neutral-50" : "border-rose-100 bg-gradient-to-br from-white to-rose-50"}`}>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Saldo (equiv. ARS)</p>
+        <p className={`mt-1 text-2xl font-bold tabular-nums ${faltaTc ? "text-neutral-400" : saldoPositivo ? "text-emerald-800" : "text-rose-700"}`}>
           {!faltaTc ? fmtArs(saldoArs as number) : "—"}
         </p>
-        <p className="text-neutral-500 text-xs mt-1.5">Ingresos menos egresos</p>
+        <p className="mt-1.5 text-xs text-neutral-500">Ingresos menos egresos</p>
       </div>
     </div>
   );
@@ -174,27 +166,28 @@ export function CajaChicaForm({ eventoId, tipoCambioUsd, movimientos, nombreUsua
     const labelC = isAdm ? labelAdmin : labelOperativo;
     return (
       <>
-        <div className={isAdm ? "w-full sm:w-40" : "w-full sm:w-40"}>
-          <label className={labelC}>Tipo</label>
-          {isAdm ? (
-            <Select
-              value={form.sentido}
-              onChange={(v) => setForm({ ...form, sentido: v })}
-              options={SENTIDO_OPTIONS}
-            />
-          ) : (
-            <select
-              value={form.sentido}
-              onChange={(e) => setForm({ ...form, sentido: e.target.value })}
-              className={inputC}
+        <div className="w-full sm:w-auto">
+          <label className={labelC}>Movimiento</label>
+          <div className="inline-flex gap-1 rounded-xl bg-neutral-100 p-1">
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, sentido: CAJA_SENTIDO_INGRESO })}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                form.sentido === CAJA_SENTIDO_INGRESO ? "bg-white text-emerald-700 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+              }`}
             >
-              {SENTIDO_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value} className="bg-white text-neutral-900">
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          )}
+              Ingreso
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, sentido: CAJA_SENTIDO_EGRESO })}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                form.sentido === CAJA_SENTIDO_EGRESO ? "bg-white text-rose-700 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+              }`}
+            >
+              Egreso
+            </button>
+          </div>
         </div>
         <div className="w-full sm:w-auto sm:min-w-[100px]">
           <label className={labelC}>Monto</label>
@@ -342,27 +335,22 @@ export function CajaChicaForm({ eventoId, tipoCambioUsd, movimientos, nombreUsua
             return (
               <div
                 key={c.id}
-                className={`flex justify-between items-start gap-4 py-4 px-4 rounded-xl border transition-colors ${
-                  esAdmin
-                    ? "bg-white hover:bg-neutral-50/80 border-neutral-200 shadow-sm"
-                    : "bg-neutral-50 hover:bg-neutral-100/80 border-neutral-100"
-                }`}
+                className="group relative flex items-start justify-between gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white px-4 py-3.5 shadow-sm transition-all hover:border-neutral-300 hover:shadow"
               >
-                <div className="min-w-0">
+                <span className={`absolute inset-y-0 left-0 w-1 ${esEg ? "bg-rose-500" : "bg-emerald-500"}`} />
+                <div className="min-w-0 pl-2.5">
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border ${
-                        esEg
-                          ? "bg-neutral-100 text-neutral-700 border-neutral-200"
-                          : "bg-neutral-200 text-neutral-800 border-neutral-300"
+                      className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                        esEg ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"
                       }`}
                     >
                       {esEg ? "Egreso" : "Ingreso"}
                     </span>
                     <span className="font-semibold text-neutral-900">{c.empleadaEncargada}</span>
                   </div>
-                  {c.concepto && <p className="text-neutral-500 text-sm mt-0.5">{c.concepto}</p>}
-                  <p className="text-neutral-400 text-xs mt-1">
+                  {c.concepto && <p className="mt-0.5 text-sm text-neutral-500">{c.concepto}</p>}
+                  <p className="mt-1 text-xs text-neutral-400">
                     {new Date(c.fecha).toLocaleDateString("es-AR")} •{" "}
                     {METODOS_PAGO[c.metodoPago ?? ""] ?? c.metodoPago ?? "—"}
                     {eq !== "FALTA_TC" &&
@@ -373,11 +361,9 @@ export function CajaChicaForm({ eventoId, tipoCambioUsd, movimientos, nombreUsua
                       )}
                   </p>
                 </div>
-                <span
-                  className={`font-bold tabular-nums shrink-0 text-neutral-900`}
-                >
+                <span className={`shrink-0 font-bold tabular-nums ${esEg ? "text-rose-700" : "text-emerald-700"}`}>
                   {esEg ? "−" : "+"}${c.monto.toLocaleString("es-AR")}
-                  <span className="block text-xs font-normal text-neutral-500 text-right">
+                  <span className="block text-right text-xs font-normal text-neutral-400">
                     {(c.metodoPago ?? "").endsWith("_USD") ? "USD" : "ARS"}
                   </span>
                 </span>

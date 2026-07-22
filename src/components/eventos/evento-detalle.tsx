@@ -168,11 +168,12 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
     permisos.eventoEditarTipoCambio || (permisos.eventoVerFlujoPesos && tc > 0);
 
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-neutral-200 bg-neutral-50">
+    <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+      <div className="px-6 py-5 border-b border-neutral-100">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-neutral-900">Movimientos del evento</h2>
+            <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-600">Registro operativo</p>
+            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Movimientos del evento</h2>
             <p className="text-neutral-500 text-sm mt-0.5">
               {verPagos && verUtileros && verCaja && verIngresos
                 ? "Pagos, utileros, caja chica e ingresos"
@@ -206,30 +207,31 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
         </div>
       </div>
 
-      <div className="flex border-b border-neutral-200 overflow-x-auto bg-white">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTabSel(t.id)}
-            className={`px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
-              tabActivo === t.id
-                ? "text-neutral-900 border-b-2 border-neutral-900 bg-neutral-50"
-                : "text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50/80"
-            }`}
-          >
-            {t.label}
-            <span
-              className={`ml-1.5 px-1.5 py-0.5 rounded text-xs border ${
-                tabActivo === t.id
-                  ? "bg-white border-neutral-300 text-neutral-800"
-                  : "bg-neutral-100 border-neutral-200 text-neutral-600"
-              }`}
-            >
-              {t.count}
-            </span>
-          </button>
-        ))}
+      <div className="border-b border-neutral-100 px-4 py-4 sm:px-6">
+        <div className="inline-flex max-w-full flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
+          {tabs.map((t) => {
+            const activo = tabActivo === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTabSel(t.id)}
+                className={`inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                  activo ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                }`}
+              >
+                {t.label}
+                <span
+                  className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${
+                    activo ? "bg-neutral-900 text-white" : "bg-neutral-200 text-neutral-600"
+                  }`}
+                >
+                  {t.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {permisos.eventoVerFlujoPesos && verEnPesos && tc > 0 && (
@@ -311,28 +313,31 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
               {evento.ingresos.map((i) => (
                 <div
                   key={i.id}
-                  className="flex justify-between items-start gap-4 py-4 px-4 rounded-lg bg-neutral-50 hover:bg-neutral-100/80 border border-neutral-200 transition-colors"
+                  className="group relative flex items-start justify-between gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white px-4 py-3.5 transition-all hover:border-neutral-300 hover:shadow-sm"
                 >
-                  <div>
+                  <span className="absolute inset-y-0 left-0 w-1 bg-emerald-500" />
+                  <div className="pl-2.5">
                     <span className="font-semibold text-neutral-900">{tiposIngreso[i.tipo] ?? i.tipo}</span>
-                    {i.concepto && <p className="text-neutral-500 text-sm mt-0.5">{i.concepto}</p>}
+                    {i.concepto && <p className="mt-0.5 text-sm text-neutral-500">{i.concepto}</p>}
                     {i.numeroFactura && (
-                      <p className="text-neutral-500 text-xs mt-0.5">Factura: {i.numeroFactura}</p>
+                      <p className="mt-0.5 text-xs text-neutral-500">Factura: {i.numeroFactura}</p>
                     )}
-                    <p className="text-neutral-400 text-xs mt-1">
+                    <p className="mt-1 text-xs text-neutral-400">
                       {new Date(i.fecha).toLocaleDateString("es-AR")} •{" "}
                       {METODOS_PAGO[i.metodoPago ?? ""] ?? i.metodoPago ?? "—"}
                     </p>
                   </div>
-                  <span className="font-bold text-neutral-900 tabular-nums shrink-0">
+                  <span className="shrink-0 font-bold tabular-nums text-emerald-700">
                     +${i.monto.toLocaleString("es-AR")}
                   </span>
                 </div>
               ))}
               {evento.ingresos.length === 0 && (
-                <p className="text-neutral-500 py-8 text-center">
-                  No hay ingresos registrados{!isAdmin && " (solo admins pueden cargar)"}
-                </p>
+                <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50/60 py-10 text-center">
+                  <p className="text-sm text-neutral-500">
+                    No hay ingresos registrados{!isAdmin && " (solo admins pueden cargar)"}
+                  </p>
+                </div>
               )}
             </div>
           </div>

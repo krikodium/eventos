@@ -155,7 +155,7 @@ function DetailSkeleton() {
 
 export function PageSkeleton({ variant = "list" }: { variant?: PageSkeletonVariant }) {
   return (
-    <div className="min-h-screen bg-[#f4f5f7]" role="status" aria-live="polite" aria-busy="true">
+    <div className="min-h-screen bg-background" role="status" aria-live="polite" aria-busy="true">
       <Navbar />
       <main className="route-skeleton mx-auto max-w-[1480px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <span className="sr-only">Cargando contenido</span>
