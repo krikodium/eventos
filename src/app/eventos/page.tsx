@@ -55,13 +55,13 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
   const estadoStyle = (estado: string) => {
     switch (estado) {
       case "FACTURADO":
-        return "bg-emerald-950 text-emerald-50 border-emerald-950";
+        return "bg-neutral-900 text-white border-neutral-900";
       case "FINALIZADO":
         return "bg-neutral-200 text-neutral-700 border-neutral-200";
       case "EN_CURSO":
-        return "bg-sky-100 text-sky-800 border-sky-200";
+        return "bg-neutral-100 text-neutral-800 border-neutral-200";
       case "CONFIRMADO":
-        return "bg-teal-100 text-teal-800 border-teal-200";
+        return "bg-emerald-50 text-emerald-700 border-emerald-200";
       default:
         return "bg-amber-50 text-amber-800 border-amber-200";
     }
@@ -99,24 +99,24 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
   const estadoBar = (estado: string) => {
     switch (estado) {
       case "FACTURADO":
-        return "bg-emerald-500";
+        return "bg-neutral-900";
       case "FINALIZADO":
         return "bg-neutral-400";
       case "EN_CURSO":
-        return "bg-sky-500";
+        return "bg-neutral-600";
       case "CONFIRMADO":
-        return "bg-teal-500";
+        return "bg-emerald-500";
       default:
         return "bg-amber-400";
     }
   };
 
   const accentStyles: Record<string, { tint: string; chip: string; bar: string }> = {
-    slate: { tint: "from-white to-slate-50", chip: "bg-slate-100 text-slate-600", bar: "from-slate-300 to-slate-400" },
-    teal: { tint: "from-white to-teal-50/70", chip: "bg-teal-50 text-teal-700", bar: "from-teal-300 to-teal-500" },
-    emerald: { tint: "from-white to-emerald-50/70", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-300 to-emerald-500" },
-    amber: { tint: "from-white to-amber-50/70", chip: "bg-amber-50 text-amber-700", bar: "from-amber-300 to-amber-500" },
-    violet: { tint: "from-white to-violet-50/70", chip: "bg-violet-50 text-violet-700", bar: "from-violet-300 to-violet-500" },
+    slate: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
+    teal: { tint: "from-white to-neutral-50/60", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-400 to-emerald-500" },
+    emerald: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
+    amber: { tint: "from-white to-neutral-50/60", chip: "bg-amber-50 text-amber-700", bar: "from-amber-300 to-amber-400" },
+    violet: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
   };
 
   const kpiCards: {
@@ -141,7 +141,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
           <div className="p-6 sm:p-8">
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                   Gestión operativa
                 </p>
                 <h1 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900">
@@ -302,7 +302,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                 <p className="text-sm text-neutral-500 mt-1">{eventoMasCercano.cliente}</p>
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <span className="text-sm font-medium text-neutral-700">{fmtDate(eventoMasCercano.fecha)}</span>
-                  <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">
+                  <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600">
                     {diasHasta(eventoMasCercano.fecha)}
                   </span>
                 </div>
@@ -339,7 +339,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                       <div className="pl-2.5">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex min-w-0 items-start gap-3">
-                            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${e.tipo === "CORPORATIVO" ? "bg-sky-50 text-sky-700" : "bg-violet-50 text-violet-700"}`}>
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-sm font-bold text-neutral-700">
                               {e.tipo === "CORPORATIVO" ? "CO" : "PA"}
                             </div>
                             <div className="min-w-0">
