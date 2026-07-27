@@ -28,8 +28,8 @@ export type EventosPermisos = Record<EventosPermisoKey, boolean>;
 
 const ALL_TRUE = Object.fromEntries(PERMISO_KEYS.map((k) => [k, true])) as EventosPermisos;
 
-/** Comportamiento histórico de usuarios no admin (VENDEDOR / VIEWER) antes de permisos granulares. */
-const LEGACY_NO_ADMIN: EventosPermisos = {
+/** Permisos base de un empleado antes de personalizaciones granulares. */
+const DEFAULT_EMPLEADO: EventosPermisos = {
   navPresupuestos: true,
   navProveedores: false,
   navUtilerosCatalogo: false,
@@ -83,8 +83,7 @@ export function resolvePermisos(
   if (role === "ADMIN") {
     return { ...ALL_TRUE };
   }
-  const base: EventosPermisos =
-    role === "VIEWER" ? { ...LEGACY_NO_ADMIN, navPresupuestos: false } : { ...LEGACY_NO_ADMIN };
+  const base: EventosPermisos = { ...DEFAULT_EMPLEADO };
 
   if (stored && typeof stored === "object" && !Array.isArray(stored)) {
     const o = stored as Record<string, unknown>;
@@ -101,7 +100,7 @@ export function permisosLabels(): Record<EventosPermisoKey, string> {
   return {
     navPresupuestos: "Ver menú Presupuestos",
     navProveedores: "Ver menú Proveedores",
-    navUtilerosCatalogo: "Ver menú Utileros (catálogo)",
+    navUtilerosCatalogo: "Ver sección Utileros",
     navReportes: "Ver menú Reportes",
     navUsuarios: "Ver menú Usuarios",
     eventoVerResumenTarjetas: "Evento: tarjetas resumen (ingresos/egresos/balance)",

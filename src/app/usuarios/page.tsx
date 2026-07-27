@@ -32,13 +32,13 @@ export default async function UsuariosPage() {
   try {
     users = await prisma.$queryRaw<RowConPermisos[]>(Prisma.sql`
       SELECT id, email, name, role::text AS role, "eventosPermisos", password
-      FROM "User"
+      FROM "EventosUsuario"
       ORDER BY "createdAt" DESC
     `);
   } catch {
     const basic = await prisma.$queryRaw<RowSinPermisos[]>(Prisma.sql`
       SELECT id, email, name, role::text AS role, password
-      FROM "User"
+      FROM "EventosUsuario"
       ORDER BY "createdAt" DESC
     `);
     users = basic.map((u) => ({ ...u, eventosPermisos: null }));

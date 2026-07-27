@@ -87,7 +87,7 @@ export function UsuariosManager({ usuarios }: { usuarios: Usuario[] }) {
       const body: Record<string, unknown> = {
         email: form.email,
         name: form.name,
-        role: form.role === "ADMIN" ? "ADMIN" : "VENDEDOR",
+        role: form.role,
       };
       if (form.role !== "ADMIN" && perfilNuevo === "operativo") {
         body.eventosPermisos = PRESET_OPERATIVO_EVENTOS;
@@ -161,7 +161,7 @@ export function UsuariosManager({ usuarios }: { usuarios: Usuario[] }) {
                   onChange={(e) => setPerfilNuevo(e.target.value as "estandar" | "operativo")}
                   className="w-full px-4 py-2 rounded-lg bg-white border border-neutral-200 text-neutral-900"
                 >
-                  <option value="estandar">Estándar (como vendedor histórico)</option>
+                  <option value="estandar">Estándar</option>
                   <option value="operativo">Operativo (cotizaciones, caja chica, utileros — sin presupuestos ni finanzas)</option>
                 </select>
               </div>

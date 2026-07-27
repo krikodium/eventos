@@ -1,49 +1,41 @@
-# Deploy en Vercel + Neon (BD compartida con Shop y Deco)
+# Deploy en Vercel + Neon
 
-Eventos comparte la base de datos con Shop y Deco. **Shop gestiona las migraciones**; Eventos solo usa `prisma generate`.
+Eventos usa PostgreSQL en Neon y mantiene sus propias tablas de negocio y
+autenticación. El build genera Prisma, pero no ejecuta migraciones
+automáticamente.
 
-## 1. Resolver la migración fallida (solo si el build falló con P3018)
+## Preparar la base
 
-Si en producción viste el error `relation "User" already exists`, ejecuta una vez contra la BD:
+Para una instalación nueva, ejecutar los scripts SQL en este orden:
 
-```bash
-DATABASE_URL="tu-url-neon" npx prisma migrate resolve --rolled-back "20250304000000_init_postgres"
-```
+1. `prisma/eventos-tables.sql`
+2. `prisma/eventos-migration-usuarios-independientes.sql`
+3. `prisma/eventos-sync-schema.sql`
 
-## 2. Crear tablas de Eventos (solo si no existen)
+Los scripts están preparados para ejecutarse desde el SQL Editor de Neon.
 
-Las tablas de Eventos no existen en la BD compartida hasta que las crees. Ejecuta una vez:
+## Variables de entorno
 
-```bash
-# Con psql (reemplaza DATABASE_URL por tu URL):
-psql "postgresql://..." -f prisma/eventos-tables.sql
+| Variable | Uso |
+|---|---|
+| `DATABASE_URL` | Conexión PostgreSQL de Neon |
+| `AUTH_SECRET` | Firma segura de sesiones |
+| `APP_URL` | URL pública usada en emails |
+| `EMAIL_PROVIDER` | Transporte de email |
+| `SMTP_USER` | Usuario SMTP |
+| `SMTP_PASS` | Contraseña de aplicación SMTP |
+| `EMAIL_FROM` | Remitente visible |
 
-# O desde Neon Dashboard: SQL Editor → pega el contenido de prisma/eventos-tables.sql
-```
+## Deploy
 
-## 3. Variables de entorno en Vercel
-
-| Variable       | Valor                                      |
-|----------------|--------------------------------------------|
-| `DATABASE_URL` | URL de Neon (pooled)                        |
-| `AUTH_SECRET`  | Resultado de `openssl rand -base64 32`     |
-| `NEXTAUTH_URL` | `https://tu-proyecto.vercel.app`           |
-
-## 4. Deploy
-
-```bash
-vercel
-```
-
-El build ejecuta solo `prisma generate && next build` (sin `migrate deploy`).
-
-## 5. Seed (opcional)
-
-Para usuarios de prueba de Eventos:
+El proyecto se despliega automáticamente en Vercel al actualizar la rama de
+producción. El comando de build es:
 
 ```bash
-DATABASE_URL="tu-url" npx prisma db seed
+prisma generate && next build
 ```
 
-- **Admin:** `admin@eventos.com` / `admin123`
-- **Empleado:** `empleado@eventos.com` / `empleado123`
+## Datos de demostración
+
+`npm run db:seed` carga datos de ejemplo de eventos, proveedores y utileros.
+No crea ni modifica usuarios.

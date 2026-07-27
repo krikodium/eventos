@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Ingresá un email válido." }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.eventosUsuario.findUnique({
     where: { email },
     select: { id: true, email: true, name: true, password: true },
   });

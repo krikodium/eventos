@@ -13,7 +13,7 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const target = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true } });
+  const target = await prisma.eventosUsuario.findUnique({ where: { id }, select: { id: true, role: true } });
   if (!target) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
   if (target.role === "ADMIN") {
     return NextResponse.json({ error: "No se modifican permisos de administradores" }, { status: 400 });
@@ -34,7 +34,7 @@ export async function PATCH(
       permisos[k] = raw[k];
     }
 
-    await prisma.user.update({
+    await prisma.eventosUsuario.update({
       where: { id },
       data: { eventosPermisos: permisos as object },
     });

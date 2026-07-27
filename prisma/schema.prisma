@@ -1,6 +1,6 @@
 // Prisma schema - Sistema de Gestión de Eventos Privados
-// BD compartida con Shop y Deco (Neon PostgreSQL)
-// NO ejecutar prisma migrate deploy - Shop gestiona las migraciones.
+// Base PostgreSQL propia del sistema Eventos en Neon.
+// Los cambios estructurales se aplican mediante los scripts SQL de prisma/.
 // Tablas base: prisma/eventos-tables.sql | Alinear columnas con el client: prisma/eventos-sync-schema.sql
 
 generator client {
@@ -12,28 +12,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ========== TABLAS COMPARTIDAS (Shop) - Solo lectura del schema, no migrar ==========
-enum UserRole {
+// ========== AUTENTICACIÓN PROPIA DE EVENTOS ==========
+enum EventosUserRole {
   ADMIN
-  VENDEDOR
-  VIEWER
+  EMPLEADO
 }
 
-model User {
-  id              String    @id @default(cuid())
+model EventosUsuario {
+  id              String          @id @default(cuid())
   name            String?
-  email           String    @unique
+  email           String          @unique
   password        String?
   emailVerified   DateTime?
   image           String?
-  role            UserRole  @default(VENDEDOR)
-  horarioEntrada  String?
-  horarioSalida   String?
-  diasTrabajo     String?
+  role            EventosUserRole @default(EMPLEADO)
   /// Permisos UI/API del módulo Eventos (JSON). null = defaults por rol.
   eventosPermisos Json?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   invitaciones EventosInvitacion[]
 }
@@ -42,13 +38,13 @@ model User {
 
 /// Invitaciones con confirmación de email. Crear tabla con prisma/eventos-migration-invitaciones.sql
 model EventosInvitacion {
-  id        String    @id @default(cuid())
+  id        String         @id @default(cuid())
   userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash String    @unique
+  user      EventosUsuario @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String         @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime  @default(now())
+  createdAt DateTime       @default(now())
 
   @@index([userId])
 }

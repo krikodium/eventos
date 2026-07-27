@@ -1,5 +1,5 @@
--- Tablas propias de Eventos (BD compartida con Shop y Deco)
--- Ejecutar UNA VEZ contra la BD. Shop no crea estas tablas.
+-- Tablas propias del sistema Eventos.
+-- Ejecutar una vez contra la base PostgreSQL configurada.
 -- Si ya existen, ignorar los errores "relation already exists".
 
 -- Evento
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS "Rubro" (
   "nombre" TEXT NOT NULL UNIQUE
 );
 
--- ProveedorEvento (diferente a Proveedor de Shop)
+-- Proveedores de Eventos
 CREATE TABLE IF NOT EXISTS "ProveedorEvento" (
   "id" TEXT NOT NULL PRIMARY KEY,
   "nombre" TEXT NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS "DiaUtilero" (
 );
 CREATE INDEX IF NOT EXISTS "DiaUtilero_eventoId_idx" ON "DiaUtilero"("eventoId");
 
--- CajaChicaEvento (diferente a CajaChica de Shop)
+-- Caja chica por evento
 CREATE TABLE IF NOT EXISTS "CajaChicaEvento" (
   "id" TEXT NOT NULL PRIMARY KEY,
   "eventoId" TEXT NOT NULL REFERENCES "Evento"("id") ON DELETE CASCADE ON UPDATE CASCADE,

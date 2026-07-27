@@ -1,6 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { hash } from "bcryptjs";
-import { PRESET_OPERATIVO_EVENTOS } from "../src/lib/permisos";
 
 const prisma = new PrismaClient();
 
@@ -9,7 +7,6 @@ const prisma = new PrismaClient();
  * Si fallan, suele faltar ejecutar prisma/eventos-tables.sql en Neon primero.
  */
 const EVENTOS_SCHEMA_PATCHES: string[] = [
-  `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "eventosPermisos" JSONB`,
   `ALTER TABLE "Evento" ADD COLUMN IF NOT EXISTS "organizadora" TEXT`,
   `ALTER TABLE "Evento" ADD COLUMN IF NOT EXISTS "provincia" TEXT`,
   `ALTER TABLE "Evento" ADD COLUMN IF NOT EXISTS "localidad" TEXT`,
@@ -102,54 +99,6 @@ async function ensureEventosSchemaPatches() {
 async function main() {
   await ensureEventosSchemaPatches();
 
-  // Usuario admin por defecto: admin@eventos.com / admin123
-  const adminPassword = await hash("admin123", 12);
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@eventos.com" },
-    update: { password: adminPassword, name: "Administrador", role: "ADMIN" },
-    create: {
-      email: "admin@eventos.com",
-      password: adminPassword,
-      name: "Administrador",
-      role: "ADMIN",
-    },
-  });
-  console.log("Admin creado:", admin.email);
-
-  // Usuario empleado de prueba: empleado@eventos.com / empleado123
-  const empPassword = await hash("empleado123", 12);
-  const empleado = await prisma.user.upsert({
-    where: { email: "empleado@eventos.com" },
-    update: { password: empPassword, name: "Empleado Demo", role: "VENDEDOR" },
-    create: {
-      email: "empleado@eventos.com",
-      password: empPassword,
-      name: "Empleado Demo",
-      role: "VENDEDOR",
-    },
-  });
-  console.log("Empleado creado:", empleado.email);
-
-  // Nicole — perfil operativo (email: nicole@eventos.hc / Nicole2026!Hc)
-  const nicolePassword = await hash("Nicole2026!Hc", 12);
-  const nicole = await prisma.user.upsert({
-    where: { email: "nicole@eventos.hc" },
-    update: {
-      password: nicolePassword,
-      name: "Nicole",
-      role: "VENDEDOR",
-      eventosPermisos: PRESET_OPERATIVO_EVENTOS as object,
-    },
-    create: {
-      email: "nicole@eventos.hc",
-      password: nicolePassword,
-      name: "Nicole",
-      role: "VENDEDOR",
-      eventosPermisos: PRESET_OPERATIVO_EVENTOS as object,
-    },
-  });
-  console.log("Nicole (operativa):", nicole.email);
-
   // Rubros, proveedores y utileros (solo si existen las tablas de Eventos)
   try {
     const rubros = await Promise.all([
@@ -214,7 +163,7 @@ async function main() {
       });
       const evento2 = await prisma.evento.create({
         data: {
-          nombre: "Lanzamiento producto TechCorp",
+          nombre: "Lanzamiento corporativo TechCorp",
           fecha: new Date(en2Semanas.getTime() + 7 * 24 * 60 * 60 * 1000),
           tipo: "CORPORATIVO",
           cliente: "TechCorp SA",

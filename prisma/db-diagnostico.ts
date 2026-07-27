@@ -99,7 +99,7 @@ const EXPECTED: Record<string, string[]> = {
     "createdAt",
     "updatedAt",
   ],
-  User: [
+  EventosUsuario: [
     "id",
     "name",
     "email",
@@ -107,9 +107,6 @@ const EXPECTED: Record<string, string[]> = {
     "emailVerified",
     "image",
     "role",
-    "horarioEntrada",
-    "horarioSalida",
-    "diasTrabajo",
     "eventosPermisos",
     "createdAt",
     "updatedAt",
