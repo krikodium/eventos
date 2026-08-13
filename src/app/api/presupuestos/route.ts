@@ -38,12 +38,13 @@ async function ensureTable() {
     await prisma.$executeRawUnsafe(`ALTER TABLE "Presupuesto" ADD COLUMN IF NOT EXISTS "honorariosConcepto" TEXT NOT NULL DEFAULT 'Honorarios HC'`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "Presupuesto" ADD COLUMN IF NOT EXISTS "cargasSocialesPct" DOUBLE PRECISION NOT NULL DEFAULT 0`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "Presupuesto" ADD COLUMN IF NOT EXISTS "impuestosPct" DOUBLE PRECISION NOT NULL DEFAULT 0`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Presupuesto" ADD COLUMN IF NOT EXISTS "eventoId" TEXT`);
   } catch {
     // tabla ya existe con todas las columnas
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.permisos) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   const isAdmin = session.user.role === "ADMIN";
@@ -53,7 +54,12 @@ export async function GET() {
 
   try {
     await ensureTable();
+    // ?eventoId=<id> filtra por evento; ?eventoId=libres trae los que no tienen evento.
+    const filtro = new URL(req.url).searchParams.get("eventoId");
+    const where =
+      filtro === "libres" ? { eventoId: null } : filtro ? { eventoId: filtro } : {};
     const presupuestos = await prisma.presupuesto.findMany({
+      where,
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(presupuestos);
@@ -74,6 +80,7 @@ export async function POST(req: Request) {
     await ensureTable();
     const body = await req.json();
     const {
+      eventoId,
       empresa, cliente, evento, fecha, validez, presupuestoNro, formaPago,
       total, items, estadoEvento,
       honorariosTipo, honorariosMonto, honorariosConcepto,
@@ -87,8 +94,15 @@ export async function POST(req: Request) {
       );
     }
 
+    // Solo aceptamos el vínculo si el evento existe: evita FK huérfanas.
+    const eventoVinculado =
+      typeof eventoId === "string" && eventoId
+        ? await prisma.evento.findUnique({ where: { id: eventoId }, select: { id: true } })
+        : null;
+
     const presupuesto = await prisma.presupuesto.create({
       data: {
+        eventoId: eventoVinculado?.id ?? null,
         empresa: empresa || null,
         cliente,
         evento,

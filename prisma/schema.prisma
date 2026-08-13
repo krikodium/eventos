@@ -77,10 +77,14 @@ model Evento {
   utilerosEnEvento UtileroEnEvento[]
   ingresos         Ingreso[]
   cajaChica        CajaChicaEvento[]
+  presupuestos     Presupuesto[]
 }
 
 model Presupuesto {
   id                 String   @id @default(cuid())
+  /// Evento al que pertenece. null = presupuesto libre, todavía sin evento.
+  eventoId           String?
+  eventoRef          Evento?  @relation(fields: [eventoId], references: [id], onDelete: SetNull)
   empresa            String?
   cliente            String
   evento             String

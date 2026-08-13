@@ -107,17 +107,31 @@ function formatMoney(value: number): string {
   });
 }
 
-export function PresupuestosGenerator() {
+/** Evento al que pertenece el presupuesto, si se entró desde su ficha. */
+export type EventoDePresupuesto = {
+  id: string;
+  nombre: string;
+  cliente: string;
+  fecha: string;
+  estado: string;
+  organizadora: string | null;
+  presupuestoNro: string | null;
+  formaPagoAcordada: string | null;
+};
+
+export function PresupuestosGenerator({ evento }: { evento?: EventoDePresupuesto }) {
   const router = useRouter();
+  // El listado de guardados se acota al evento (o a los libres si no hay evento).
+  const listaUrl = `/api/presupuestos?eventoId=${evento?.id ?? "libres"}`;
   const [presupuestos, setPresupuestos] = useState<PresupuestoGuardado[]>([]);
   const [form, setForm] = useState({
-    empresa: "",
-    cliente: "",
-    fecha: new Date().toISOString().slice(0, 10),
+    empresa: evento?.organizadora ?? "",
+    cliente: evento?.cliente ?? "",
+    fecha: (evento?.fecha ?? new Date().toISOString()).slice(0, 10),
     validez: "15",
-    presupuestoNro: "",
-    formaPago: "TRANSFERENCIA",
-    evento: "",
+    presupuestoNro: evento?.presupuestoNro ?? "",
+    formaPago: normalizarFormaPago(evento?.formaPagoAcordada ?? null),
+    evento: evento?.nombre ?? "",
   });
 
   const [items, setItems] = useState<Item[]>([
@@ -136,14 +150,14 @@ export function PresupuestosGenerator() {
   const [guardandoPresupuesto, setGuardandoPresupuesto] = useState(false);
   const [creandoEvento, setCreandoEvento] = useState(false);
   const [presupuestoId, setPresupuestoId] = useState<string>("");
-  const [estadoEvento, setEstadoEvento] = useState<string>("BORRADOR");
+  const [estadoEvento, setEstadoEvento] = useState<string>(evento?.estado ?? "BORRADOR");
   const [mensaje, setMensaje] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    fetch("/api/presupuestos")
+    fetch(listaUrl)
       .then(async (r) => {
         const data = await r.json().catch(() => []);
         if (!r.ok) {
@@ -153,7 +167,7 @@ export function PresupuestosGenerator() {
         setPresupuestos(Array.isArray(data) ? data : []);
       })
       .catch(console.error);
-  }, []);
+  }, [listaUrl]);
 
   function normalizarItems(raw: unknown): Item[] {
     const empty: Item = { id: crypto.randomUUID(), concepto: "", cantidad: 1, precioInterno: 0, precioCliente: 0 };
@@ -207,6 +221,7 @@ export function PresupuestosGenerator() {
     try {
       const formaPagoLabel = formaPagoOptions.find((o) => o.value === form.formaPago)?.label ?? form.formaPago;
       const payload = {
+        eventoId: evento?.id ?? null,
         empresa: form.empresa || null,
         cliente: form.cliente,
         evento: form.evento,
@@ -233,7 +248,7 @@ export function PresupuestosGenerator() {
         throw new Error(errData?.error ?? `Error ${res.status}`);
       }
       const saved = await res.json();
-      const listRes = await fetch("/api/presupuestos");
+      const listRes = await fetch(listaUrl);
       const listData = await listRes.json().catch(() => []);
       setPresupuestos(Array.isArray(listData) ? listData : []);
       setPresupuestoId(saved.id);
