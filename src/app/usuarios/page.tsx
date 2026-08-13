@@ -10,39 +10,23 @@ export default async function UsuariosPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/");
 
-  type RowConPermisos = {
+  type UsuarioRow = {
     id: string;
     email: string;
     name: string | null;
     role: string;
     eventosPermisos: Prisma.JsonValue | null;
     password: string | null;
+    accesoTemporalHash: string | null;
+    accesoTemporalExpiraAt: Date | null;
   };
 
-  type RowSinPermisos = {
-    id: string;
-    email: string;
-    name: string | null;
-    role: string;
-    password: string | null;
-  };
-
-  let users: RowConPermisos[];
-
-  try {
-    users = await prisma.$queryRaw<RowConPermisos[]>(Prisma.sql`
-      SELECT id, email, name, role::text AS role, "eventosPermisos", password
-      FROM "EventosUsuario"
-      ORDER BY "createdAt" DESC
-    `);
-  } catch {
-    const basic = await prisma.$queryRaw<RowSinPermisos[]>(Prisma.sql`
-      SELECT id, email, name, role::text AS role, password
-      FROM "EventosUsuario"
-      ORDER BY "createdAt" DESC
-    `);
-    users = basic.map((u) => ({ ...u, eventosPermisos: null }));
-  }
+  const users = await prisma.$queryRaw<UsuarioRow[]>(Prisma.sql`
+    SELECT id, email, name, role::text AS role, "eventosPermisos", password,
+      "accesoTemporalHash", "accesoTemporalExpiraAt"
+    FROM "EventosUsuario"
+    ORDER BY "createdAt" DESC
+  `);
 
   const usuarios = users.map((u) => ({
     id: u.id,
@@ -50,7 +34,13 @@ export default async function UsuariosPage() {
     name: u.name ?? "",
     role: String(u.role),
     eventosPermisos: u.eventosPermisos,
-    activado: Boolean(u.password),
+    estado: (u.password
+      ? "ACTIVO"
+      : u.accesoTemporalHash && u.accesoTemporalExpiraAt
+        ? u.accesoTemporalExpiraAt > new Date() ? "PENDIENTE" : "VENCIDO"
+        : "SIN_ACCESO") as "ACTIVO" | "PENDIENTE" | "VENCIDO" | "SIN_ACCESO",
+    accesoTemporalExpiraAt: u.accesoTemporalExpiraAt?.toISOString() ?? null,
+    esActual: u.id === session.user.id,
   }));
 
   return (

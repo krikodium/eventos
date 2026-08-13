@@ -10,7 +10,8 @@ Para una instalación nueva, ejecutar los scripts SQL en este orden:
 
 1. `prisma/eventos-tables.sql`
 2. `prisma/eventos-migration-usuarios-independientes.sql`
-3. `prisma/eventos-sync-schema.sql`
+3. `prisma/eventos-migration-acceso-temporal.sql`
+4. `prisma/eventos-sync-schema.sql`
 
 Los scripts están preparados para ejecutarse desde el SQL Editor de Neon.
 
@@ -20,11 +21,6 @@ Los scripts están preparados para ejecutarse desde el SQL Editor de Neon.
 |---|---|
 | `DATABASE_URL` | Conexión PostgreSQL de Neon |
 | `AUTH_SECRET` | Firma segura de sesiones |
-| `APP_URL` | URL pública usada en emails |
-| `EMAIL_PROVIDER` | Transporte de email |
-| `SMTP_USER` | Usuario SMTP |
-| `SMTP_PASS` | Contraseña de aplicación SMTP |
-| `EMAIL_FROM` | Remitente visible |
 
 ## Deploy
 
@@ -34,6 +30,9 @@ producción. El comando de build es:
 ```bash
 prisma generate && next build
 ```
+
+Después de comprobar el nuevo acceso en producción, ejecutar
+`prisma/eventos-cleanup-email.sql` para eliminar la tabla heredada de tokens.
 
 ## Datos de demostración
 

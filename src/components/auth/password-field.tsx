@@ -33,7 +33,7 @@ export function PasswordField({ id, label, value, onChange, autoComplete, placeh
         value={value}
         onChange={onChange}
         required
-        minLength={autoComplete === "new-password" ? 8 : undefined}
+        minLength={autoComplete === "new-password" ? 12 : undefined}
         autoComplete={autoComplete}
         placeholder={placeholder}
         className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-accent-500 focus:ring-4 focus:ring-accent-100"

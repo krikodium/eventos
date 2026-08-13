@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
-  const publicAuthPaths = ["/login", "/registro", "/confirmar", "/recuperar", "/restablecer"];
+  const publicAuthPaths = ["/login", "/activar"];
   const isPublicAuthPage = publicAuthPaths.some(
     (path) => req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith(`${path}/`)
   );

@@ -15,8 +15,7 @@ function LoginForm() {
   const callbackUrl = requestedCallback.startsWith("/") && !requestedCallback.startsWith("//")
     ? requestedCallback
     : "/";
-  const confirmado = searchParams.get("confirmado") === "1";
-  const restablecido = searchParams.get("restablecido") === "1";
+  const activado = searchParams.get("activado") === "1";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -55,9 +54,9 @@ function LoginForm() {
       sideTitle="Tus eventos, costos y equipos en un solo lugar."
       sideDescription="Planificá cada fecha con información clara, desde el presupuesto inicial hasta el cierre financiero."
     >
-      {(confirmado || restablecido) && (
+      {activado && (
         <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-relaxed text-emerald-800">
-          {confirmado ? "Cuenta activada. Ya podés ingresar con tu nueva contraseña." : "Contraseña actualizada. Ya podés volver a ingresar."}
+          Acceso activado. Ya podés ingresar con tu contraseña personal.
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -76,9 +75,6 @@ function LoginForm() {
           />
         </div>
         <PasswordField id="password" label="Contraseña" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" />
-        <div className="flex justify-end">
-          <Link href="/recuperar" className="text-xs font-semibold text-accent-700 transition hover:text-accent-900">¿Olvidaste tu contraseña?</Link>
-        </div>
         {error && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
         <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60">
           {loading && <LoadingSpinner className="h-5 w-5 text-white" />}
@@ -86,7 +82,8 @@ function LoginForm() {
         </button>
       </form>
       <div className="mt-7 border-t border-neutral-100 pt-6 text-center">
-        <p className="text-xs leading-relaxed text-neutral-500">¿Todavía no tenés acceso? Un administrador debe enviarte una invitación desde el panel de usuarios.</p>
+        <p className="text-xs leading-relaxed text-neutral-500">¿Tenés una clave temporal o necesitás recuperar el acceso?</p>
+        <Link href="/activar" className="mt-2 inline-block text-sm font-semibold text-neutral-800 transition hover:text-neutral-950">Activar con clave temporal</Link>
       </div>
     </AuthShell>
   );

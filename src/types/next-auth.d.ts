@@ -6,6 +6,7 @@ declare module "next-auth" {
     id?: string;
     role?: string;
     permisos?: EventosPermisos;
+    authVersion?: number;
   }
 
   interface Session {
@@ -24,5 +25,6 @@ declare module "next-auth/jwt" {
     id?: string;
     role?: string;
     permisos?: EventosPermisos;
+    authVersion?: number;
   }
 }

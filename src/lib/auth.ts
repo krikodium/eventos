@@ -42,6 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: true,
             password: true,
             role: true,
+            authVersion: true,
           },
         });
 
@@ -60,6 +61,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name ?? user.email,
           role,
           permisos,
+          authVersion: user.authVersion,
         };
       },
     }),
@@ -71,10 +73,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = user.role;
         token.email = user.email;
         token.name = user.name;
-        const u = user as { permisos?: EventosPermisos };
+        const u = user as { permisos?: EventosPermisos; authVersion?: number };
+        token.authVersion = u.authVersion;
         if (u.permisos) {
           token.permisos = u.permisos;
         }
+      } else if (token.id) {
+        const current = await prisma.eventosUsuario.findUnique({
+          where: { id: String(token.id) },
+          select: { password: true, authVersion: true },
+        });
+        if (!current?.password || current.authVersion !== token.authVersion) return null;
       }
       return token;
     },

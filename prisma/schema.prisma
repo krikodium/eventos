@@ -19,35 +19,25 @@ enum EventosUserRole {
 }
 
 model EventosUsuario {
-  id              String          @id @default(cuid())
-  name            String?
-  email           String          @unique
-  password        String?
-  emailVerified   DateTime?
-  image           String?
-  role            EventosUserRole @default(EMPLEADO)
+  id                           String          @id @default(cuid())
+  name                         String?
+  email                        String          @unique
+  password                     String?
+  emailVerified                DateTime?
+  image                        String?
+  role                         EventosUserRole @default(EMPLEADO)
   /// Permisos UI/API del módulo Eventos (JSON). null = defaults por rol.
-  eventosPermisos Json?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  invitaciones EventosInvitacion[]
+  eventosPermisos              Json?
+  accesoTemporalHash           String?
+  accesoTemporalExpiraAt       DateTime?
+  accesoTemporalIntentos       Int             @default(0)
+  accesoTemporalBloqueadoHasta DateTime?
+  authVersion                  Int             @default(0)
+  createdAt                    DateTime        @default(now())
+  updatedAt                    DateTime        @updatedAt
 }
 
 // ========== TABLAS PROPIAS DE EVENTOS - Usar eventos-tables.sql para crearlas ==========
-
-/// Invitaciones con confirmación de email. Crear tabla con prisma/eventos-migration-invitaciones.sql
-model EventosInvitacion {
-  id        String         @id @default(cuid())
-  userId    String
-  user      EventosUsuario @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash String         @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime       @default(now())
-
-  @@index([userId])
-}
 
 model Evento {
   id                   String    @id @default(cuid())

@@ -14,6 +14,11 @@
 
 -- --- Autenticación propia de Eventos ---
 -- Ejecutar antes prisma/eventos-migration-usuarios-independientes.sql.
+ALTER TABLE "EventosUsuario" ADD COLUMN IF NOT EXISTS "accesoTemporalHash" TEXT;
+ALTER TABLE "EventosUsuario" ADD COLUMN IF NOT EXISTS "accesoTemporalExpiraAt" TIMESTAMP(3);
+ALTER TABLE "EventosUsuario" ADD COLUMN IF NOT EXISTS "accesoTemporalIntentos" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "EventosUsuario" ADD COLUMN IF NOT EXISTS "accesoTemporalBloqueadoHasta" TIMESTAMP(3);
+ALTER TABLE "EventosUsuario" ADD COLUMN IF NOT EXISTS "authVersion" INTEGER NOT NULL DEFAULT 0;
 
 -- --- Evento: detalle comercial y caja ---
 ALTER TABLE "Evento" ADD COLUMN IF NOT EXISTS "organizadora" TEXT;

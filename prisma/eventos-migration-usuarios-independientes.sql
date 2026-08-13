@@ -1,6 +1,6 @@
 -- Aísla la autenticación de Eventos de cualquier tabla de usuarios externa.
 -- Migra únicamente los tres accesos autorizados y conserva contraseñas,
--- verificaciones e invitaciones existentes.
+-- verificaciones existentes.
 
 BEGIN;
 
@@ -39,6 +39,11 @@ CREATE TABLE IF NOT EXISTS "EventosUsuario" (
   "image" TEXT,
   "role" "EventosUserRole" NOT NULL DEFAULT 'EMPLEADO',
   "eventosPermisos" JSONB,
+  "accesoTemporalHash" TEXT,
+  "accesoTemporalExpiraAt" TIMESTAMP(3),
+  "accesoTemporalIntentos" INTEGER NOT NULL DEFAULT 0,
+  "accesoTemporalBloqueadoHasta" TIMESTAMP(3),
+  "authVersion" INTEGER NOT NULL DEFAULT 0,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "EventosUsuario_pkey" PRIMARY KEY ("id")
@@ -79,16 +84,5 @@ WHERE lower("email") NOT IN (
   'gestion@hermanascaradonti.com',
   'lola@hermanascaradonti.com'
 );
-
-DELETE FROM "EventosInvitacion"
-WHERE "userId" NOT IN (SELECT "id" FROM "EventosUsuario");
-
-ALTER TABLE "EventosInvitacion"
-  DROP CONSTRAINT IF EXISTS "EventosInvitacion_userId_fkey";
-
-ALTER TABLE "EventosInvitacion"
-  ADD CONSTRAINT "EventosInvitacion_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "EventosUsuario"("id")
-  ON DELETE CASCADE ON UPDATE CASCADE;
 
 COMMIT;

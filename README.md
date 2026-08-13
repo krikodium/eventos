@@ -21,7 +21,6 @@ Variables mínimas en `.env`:
 ```env
 DATABASE_URL="postgresql://..."
 AUTH_SECRET="..."
-APP_URL="http://localhost:3000"
 ```
 
 ## Base de datos
@@ -30,8 +29,8 @@ El esquema está en `prisma/schema.prisma`. Para instalaciones nuevas, seguir
 el orden de scripts documentado en `DEPLOY.md`.
 
 La autenticación usa la tabla propia `EventosUsuario`, con roles `ADMIN` y
-`EMPLEADO`. Las altas se realizan desde el panel de usuarios mediante
-invitación por email.
+`EMPLEADO`. Las altas y recuperaciones se administran desde el panel de
+usuarios mediante claves temporales de un solo uso, sin correo externo.
 
 ## Comandos
 
