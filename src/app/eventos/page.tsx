@@ -5,6 +5,7 @@ import { EstadoEventoBadge } from "@/components/ui/estado-badge";
 import { TIPO_EVENTO, ESTADO_EVENTO } from "@/lib/estados";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { PageHeader } from "@/components/layout/page-header";
 
 type EventosPageProps = {
   searchParams?: Promise<{
@@ -112,22 +113,13 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <section className="rounded-3xl border border-neutral-200 bg-white shadow-sm mb-6">
-          <div className="p-6 sm:p-8">
-            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                  Gestión operativa
-                </p>
-                <h1 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900">
-                  Eventos
-                </h1>
-                <p className="mt-3 max-w-2xl text-sm sm:text-base text-neutral-600">
-                  Seguimiento comercial y operativo: estado, fechas, presupuesto, proveedores,
-                  utileros e ingresos asociados.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
+        <PageHeader
+          eyebrow="Gestión operativa"
+          title="Eventos"
+          description="Seguimiento comercial y operativo: estado, fechas, presupuesto, proveedores, utileros e ingresos asociados."
+          status={`${todosEventos.length} evento${todosEventos.length === 1 ? "" : "s"}`}
+          actions={
+            <div className="flex flex-wrap gap-2">
                 <Link
                   href="/"
                   className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:border-neutral-300 transition-colors"
@@ -142,19 +134,17 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                     Nuevo evento
                   </Link>
                 )}
-              </div>
             </div>
+          }
+        />
 
-          </div>
-        </section>
-
-        <section className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-6">
+        <section className="mb-7 grid grid-cols-2 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_5px_18px_rgba(36,35,32,0.035)] lg:grid-cols-6 lg:divide-x lg:divide-neutral-200">
           {kpiCards.map((card) => {
             const a = accentStyles[card.accent];
             return (
               <div
                 key={card.label}
-                className={`group relative overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br ${a.tint} p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
+                className="group border-b border-neutral-200 p-4 transition-colors odd:border-r hover:bg-neutral-50 lg:border-b-0 lg:border-r-0"
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-neutral-500 text-[11px] font-semibold uppercase tracking-wider leading-tight">
@@ -167,14 +157,13 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                   </span>
                 </div>
                 <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">{card.value}</p>
-                <div className={`mt-3 h-1 w-full rounded-full bg-gradient-to-r ${a.bar} opacity-70 transition-opacity group-hover:opacity-100`} />
               </div>
             );
           })}
         </section>
 
         <div className="grid lg:grid-cols-[1fr_360px] gap-5 mb-6">
-          <section className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-sm">
+          <section className="rounded-xl border border-neutral-200 bg-white p-5 shadow-[0_5px_18px_rgba(36,35,32,0.035)]">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
               <div>
                 <h2 className="text-sm font-semibold text-neutral-900">Buscar y filtrar</h2>
@@ -205,7 +194,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                   name="q"
                   defaultValue={q}
                   placeholder="Evento, cliente, organizadora..."
-                  className="h-11 w-full rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 pl-10 pr-4 text-sm text-neutral-900 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-neutral-900 focus:bg-white focus:ring-4 focus:ring-neutral-900/10"
+                  className="pl-10 pr-4"
                 />
               </label>
 
@@ -216,7 +205,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                 <select
                   name="estado"
                   defaultValue={estadoFiltro}
-                  className="peer h-11 w-full appearance-none rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 px-4 pr-10 text-sm font-medium text-neutral-800 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition hover:border-neutral-300 focus:border-neutral-900 focus:bg-white focus:ring-4 focus:ring-neutral-900/10"
+                  className="peer px-4 pr-10 font-medium"
                 >
                   <option value="">Todos los estados</option>
                   {Object.entries(ESTADO_EVENTO).map(([estado, { label }]) => (
@@ -239,7 +228,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                 <select
                   name="tipo"
                   defaultValue={tipoFiltro}
-                  className="peer h-11 w-full appearance-none rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 px-4 pr-10 text-sm font-medium text-neutral-800 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition hover:border-neutral-300 focus:border-neutral-900 focus:bg-white focus:ring-4 focus:ring-neutral-900/10"
+                  className="peer px-4 pr-10 font-medium"
                 >
                   <option value="">Todos los tipos</option>
                   {Object.entries(TIPO_EVENTO).map(([tipo, label]) => (
@@ -267,7 +256,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
             </form>
           </section>
 
-          <aside className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-sm">
+          <aside className="rounded-xl border border-neutral-200 bg-white p-5 shadow-[0_5px_18px_rgba(36,35,32,0.035)]">
             <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
               Próximo evento
             </p>
@@ -288,7 +277,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
           </aside>
         </div>
 
-        <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_5px_18px_rgba(36,35,32,0.035)]">
           <div className="px-5 py-4 border-b border-neutral-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold text-neutral-900">Eventos cargados</h2>

@@ -64,7 +64,7 @@ export function Select({
       ref={dropdownRef}
       role="listbox"
       aria-required={required}
-      className="fixed z-[9999] rounded-lg border border-neutral-200 bg-white py-1 shadow-xl max-h-60 overflow-y-auto"
+      className="fixed z-[9999] max-h-60 overflow-y-auto rounded-xl border border-neutral-200 bg-[#fffefb] p-1.5 shadow-[0_16px_40px_rgba(32,31,29,0.14)]"
       style={{
         top: dropdownStyle.top,
         left: dropdownStyle.left,
@@ -82,10 +82,10 @@ export function Select({
             onChange(opt.value);
             setOpen(false);
           }}
-          className={`w-full px-3 py-2 text-left text-sm transition-colors ${
+          className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
             opt.value === value
-              ? "bg-neutral-100 text-neutral-900 font-medium"
-              : "text-neutral-700 hover:bg-neutral-50"
+              ? "bg-neutral-900 text-white font-medium"
+              : "text-neutral-700 hover:bg-neutral-100"
           }`}
         >
           {opt.label}
@@ -101,7 +101,7 @@ export function Select({
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="w-full px-3 py-2.5 rounded-lg bg-white border border-neutral-200 text-neutral-900 text-sm text-left flex items-center justify-between gap-2 hover:border-neutral-300 focus:ring-2 focus:ring-neutral-200 focus:border-neutral-300 transition-colors"
+        className="flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#d8d5ce] bg-[#fffefb] px-3.5 py-2.5 text-left text-sm text-neutral-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(32,31,29,0.025)] transition hover:border-[#b9b6af] focus:border-neutral-700 focus:outline-none focus:ring-[3px] focus:ring-neutral-900/10"
       >
         <span className={value ? "" : "text-neutral-400"}>{selected?.label ?? placeholder}</span>
         <svg

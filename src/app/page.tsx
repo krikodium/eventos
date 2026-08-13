@@ -291,14 +291,14 @@ export default async function HomePage() {
       )}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isAdmin ? (
-          <section className="rounded-3xl border border-neutral-200 bg-white shadow-sm mb-6">
-            <div className="p-6 sm:p-7">
+          <section className="mb-8">
+            <div>
               <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                     Panel administrativo
                   </p>
-                  <h1 className="mt-3 text-3xl font-semibold tracking-tight text-neutral-900">
+                  <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-neutral-950 sm:text-[36px]">
                     {greeting()}, {session.user?.name?.split(" ")[0] ?? "Usuario"}
                   </h1>
                   <p className="text-neutral-600 text-sm mt-2 max-w-2xl">
@@ -335,14 +335,13 @@ export default async function HomePage() {
                   </Link>
                 </div>
               </div>
-              <div className="mt-7 grid gap-3 sm:grid-cols-3">
+              <div className="mt-7 grid overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_5px_18px_rgba(36,35,32,0.035)] sm:grid-cols-3 sm:divide-x sm:divide-neutral-200">
                 {/* Próximo evento */}
                 <Link
                   href={proximoEvento ? `/eventos/${proximoEvento.id}` : "/eventos"}
-                  className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
+                  className="group border-b border-neutral-200 p-5 transition-colors last:border-b-0 hover:bg-neutral-50 sm:border-b-0"
                 >
-                  <span className="absolute inset-y-0 left-0 w-1 bg-neutral-800" />
-                  <div className="pl-2.5">
+                  <div>
                     <div className="flex items-center gap-2">
                       <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-100 text-neutral-700">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -369,9 +368,8 @@ export default async function HomePage() {
                 </Link>
 
                 {/* Resultado del negocio */}
-                <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-                  <span className={`absolute inset-y-0 left-0 w-1 ${balance >= 0 ? "bg-emerald-500" : "bg-rose-500"}`} />
-                  <div className="pl-2.5">
+                <div className="border-b border-neutral-200 p-5 sm:border-b-0">
+                  <div>
                     <div className="flex items-center gap-2">
                       <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${balance >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,9 +399,8 @@ export default async function HomePage() {
                 </div>
 
                 {/* Agenda operativa */}
-                <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-                  <span className="absolute inset-y-0 left-0 w-1 bg-neutral-400" />
-                  <div className="pl-2.5">
+                <div className="p-5">
+                  <div>
                     <div className="flex items-center gap-2">
                       <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -454,13 +451,13 @@ export default async function HomePage() {
 
         {isAdmin && (
           <>
-            <section className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
+            <section className="mb-8 grid grid-cols-2 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_5px_18px_rgba(36,35,32,0.035)] lg:grid-cols-6 lg:divide-x lg:divide-neutral-200">
               {kpiCards.map((card) => {
                 const a = accentStyles[card.accent];
                 return (
                   <div
                     key={card.label}
-                    className={`group relative overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br ${a.tint} p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
+                    className="group border-b border-neutral-200 p-4 transition-colors odd:border-r hover:bg-neutral-50 lg:border-b-0 lg:border-r-0"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-neutral-500 text-[11px] font-semibold uppercase tracking-wider">
@@ -474,7 +471,6 @@ export default async function HomePage() {
                     </div>
                     <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">{card.value}</p>
                     <p className="text-[11px] text-neutral-400 mt-1">{card.sub}</p>
-                    <div className={`mt-3 h-1 w-full rounded-full bg-gradient-to-r ${a.bar} opacity-70 transition-opacity group-hover:opacity-100`} />
                   </div>
                 );
               })}

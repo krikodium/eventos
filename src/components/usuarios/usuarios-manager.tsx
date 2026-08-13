@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SectionHeading } from "@/components/layout/section-heading";
 import {
   PERMISO_KEYS,
   permisosLabels,
@@ -173,13 +174,9 @@ export function UsuariosManager({ usuarios }: { usuarios: Usuario[] }) {
   return (
     <>
       <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)] xl:items-start">
-        <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm xl:sticky xl:top-20">
-          <div className="border-b border-neutral-100 px-6 py-5">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Nuevo acceso</p>
-            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Crear usuario</h2>
-            <p className="mt-1 text-sm leading-relaxed text-neutral-500">El sistema genera una clave temporal que se muestra una sola vez. No se envía ningún email.</p>
-          </div>
-          <div className="p-6">
+        <section className="space-y-3 xl:sticky xl:top-20">
+          <SectionHeading eyebrow="Nuevo acceso" title="Crear usuario" description="Genera una clave temporal visible una sola vez, sin depender del correo." />
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-[0_5px_18px_rgba(36,35,32,0.035)]">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="nuevo-nombre" className="mb-1 block text-sm font-medium text-neutral-700">Nombre</label>
@@ -213,13 +210,9 @@ export function UsuariosManager({ usuarios }: { usuarios: Usuario[] }) {
           </div>
         </section>
 
-        <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-          <div className="border-b border-neutral-100 px-6 py-5">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Equipo</p>
-            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Usuarios registrados</h2>
-            <p className="mt-1 text-sm text-neutral-500">Administrá accesos y permisos sin depender de servicios de correo.</p>
-          </div>
-          <div className="overflow-x-auto">
+        <section className="min-w-0 space-y-3">
+          <SectionHeading eyebrow="Equipo" title="Usuarios registrados" description="Administra accesos y permisos de cada integrante." />
+          <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white shadow-[0_5px_18px_rgba(36,35,32,0.035)]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wider text-neutral-700">

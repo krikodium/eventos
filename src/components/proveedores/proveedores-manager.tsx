@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { SectionHeading } from "@/components/layout/section-heading";
 
 type Rubro = { id: string; nombre: string };
 type Proveedor = {
@@ -112,13 +113,9 @@ export function ProveedoresManager() {
       </div>
 
       {tab === "rubros" && (
-        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-          <div className="border-b border-neutral-100 px-6 py-5">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Clasificación</p>
-            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Agregar rubro</h2>
-            <p className="mt-1 text-sm text-neutral-500">Categorías para clasificar proveedores.</p>
-          </div>
-          <div className="p-6">
+        <div className="space-y-3">
+          <SectionHeading eyebrow="Clasificación" title="Rubros" description="Crea y consulta las categorías del directorio." />
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-[0_5px_18px_rgba(36,35,32,0.035)]">
             <form onSubmit={agregarRubro} className="flex gap-4 mb-6">
               <input
                 type="text"
@@ -147,13 +144,9 @@ export function ProveedoresManager() {
       )}
 
       {tab === "proveedores" && (
-        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-          <div className="border-b border-neutral-100 px-6 py-5">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Directorio</p>
-            <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Agregar proveedor</h2>
-            <p className="mt-1 text-sm text-neutral-500">Registrá proveedores y asignales un rubro.</p>
-          </div>
-          <div className="p-6">
+        <div className="space-y-3">
+          <SectionHeading eyebrow="Directorio" title="Proveedores" description="Registra contactos y asigna cada proveedor a su rubro." />
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-[0_5px_18px_rgba(36,35,32,0.035)]">
             <form onSubmit={agregarProveedor} className="flex flex-wrap gap-4 mb-6">
               <input
                 type="text"

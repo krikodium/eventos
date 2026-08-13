@@ -8,6 +8,11 @@
   --surface-sidebar: #f0eee8;
   --surface-active: #dcdad4;
   --border-subtle: #dedbd3;
+  --control-bg: #fffefb;
+  --control-border: #d8d5ce;
+  --control-border-hover: #b9b6af;
+  --control-border-focus: #373735;
+  --control-placeholder: #9b9891;
 }
 
 @theme inline {
@@ -51,17 +56,17 @@ body {
 @layer components {
   /* --- Superficies --- */
   .card {
-    @apply rounded-2xl border border-neutral-200 bg-white shadow-sm;
+    @apply rounded-xl border border-neutral-200 bg-white shadow-[0_5px_18px_rgba(36,35,32,0.035)];
   }
 
   /* Tarjeta que reacciona al hover (listados, accesos rápidos). */
   .card-interactive {
-    @apply rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all
+    @apply rounded-xl border border-neutral-200 bg-white shadow-[0_5px_18px_rgba(36,35,32,0.035)] transition-all
            hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md;
   }
 
   .panel {
-    @apply rounded-2xl border border-border-subtle bg-surface shadow-[0_8px_24px_rgba(36,35,32,0.04)];
+    @apply rounded-xl border border-border-subtle bg-surface shadow-[0_5px_18px_rgba(36,35,32,0.035)];
   }
 
   .section-eyebrow {
@@ -99,11 +104,7 @@ body {
   }
 
   .input {
-    @apply h-11 w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm text-neutral-900
-           placeholder-neutral-400 transition
-           hover:border-neutral-300
-           focus:border-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-900/10
-           disabled:bg-neutral-50 disabled:text-neutral-500;
+    @apply h-11 w-full rounded-xl border px-4 text-sm text-neutral-900 transition;
   }
 
   .form-error {
@@ -164,6 +165,157 @@ body {
   .empty {
     @apply py-12 text-center text-sm text-neutral-500;
   }
+}
+
+/* ============================================================
+   Controles de formulario propios de Caradonti.
+   Son reglas globales deliberadas: eliminan la apariencia nativa
+   inconsistente sin obligar a repetir veinte utilidades por campo.
+   ============================================================ */
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]),
+  select,
+  textarea
+) {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--control-border);
+  border-radius: 12px;
+  background-color: var(--control-bg);
+  color: #252523;
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8), 0 1px 2px rgb(32 31 29 / 0.025);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]),
+  textarea
+) {
+  padding-top: 0.68rem;
+  padding-bottom: 0.68rem;
+}
+
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]),
+  textarea
+):not([class*="px-"]):not([class*="pl-"]) {
+  padding-left: 0.875rem;
+}
+
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]),
+  textarea
+):not([class*="px-"]):not([class*="pr-"]) {
+  padding-right: 0.875rem;
+}
+
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]),
+  select,
+  textarea
+):hover:not(:disabled) {
+  border-color: var(--control-border-hover);
+}
+
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]),
+  select,
+  textarea
+):focus,
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]),
+  select,
+  textarea
+):focus-visible {
+  border-color: var(--control-border-focus);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgb(25 25 24 / 0.09), 0 1px 2px rgb(32 31 29 / 0.04);
+  outline: none;
+}
+
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]),
+  select,
+  textarea
+):disabled {
+  cursor: not-allowed;
+  border-color: #e4e2dc;
+  background: #f2f0eb;
+  color: #8d8a83;
+  box-shadow: none;
+}
+
+:where(input, textarea)::placeholder {
+  color: var(--control-placeholder);
+  opacity: 1;
+}
+
+select:not([multiple]):not(.peer) {
+  appearance: none;
+  padding-top: 0.68rem;
+  padding-bottom: 0.68rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6964' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-position: right 0.8rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem;
+}
+
+select:not([multiple]):not([class*="px-"]):not([class*="pl-"]) {
+  padding-left: 0.875rem;
+}
+
+select:not([multiple]):not([class*="px-"]):not([class*="pr-"]) {
+  padding-right: 2.5rem;
+}
+
+textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+
+input[type="date"],
+input[type="datetime-local"] {
+  color-scheme: light;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.56;
+  transition: opacity 160ms ease;
+}
+
+input[type="date"]:hover::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 0.9;
+}
+
+:where(input[type="checkbox"], input[type="radio"]) {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  cursor: pointer;
+  accent-color: #252523;
+}
+
+:where(input[type="checkbox"], input[type="radio"]):focus-visible {
+  outline: 2px solid rgb(25 25 24 / 0.5);
+  outline-offset: 2px;
+}
+
+/* Edición inline: mantiene densidad sin volver al aspecto nativo. */
+:where(td, [data-control-density="compact"]) :where(
+  input:not([type="checkbox"]):not([type="radio"]),
+  select
+) {
+  min-height: 36px;
+  border-radius: 9px;
+  padding-top: 0.42rem;
+  padding-bottom: 0.42rem;
+  font-size: 0.8125rem;
 }
 
 /* Foco visible consistente para navegación por teclado. */
