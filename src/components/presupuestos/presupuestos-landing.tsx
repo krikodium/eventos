@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EstadoEventoBadge } from "@/components/ui/estado-badge";
 
 type EventoConPresupuestos = {
   id: string;
@@ -16,22 +17,6 @@ type PresupuestoLibre = {
   total: number;
   presupuestoNro: string | null;
   createdAt: Date;
-};
-
-const ESTADO_VARIANT: Record<string, string> = {
-  FACTURADO: "badge-success",
-  FINALIZADO: "badge-accent",
-  EN_CURSO: "badge-warning",
-  CONFIRMADO: "badge-warning",
-  BORRADOR: "badge-neutral",
-};
-
-const ESTADO_LABEL: Record<string, string> = {
-  BORRADOR: "Borrador",
-  CONFIRMADO: "Confirmado",
-  EN_CURSO: "En curso",
-  FINALIZADO: "Finalizado",
-  FACTURADO: "Facturado",
 };
 
 function money(value: number): string {
@@ -104,9 +89,7 @@ export function PresupuestosLanding({
                       </p>
                       <p className="mt-0.5 truncate text-xs text-neutral-500">{evento.cliente}</p>
                     </div>
-                    <span className={`badge ${ESTADO_VARIANT[evento.estado] ?? "badge-neutral"}`}>
-                      {ESTADO_LABEL[evento.estado] ?? evento.estado}
-                    </span>
+                    <EstadoEventoBadge estado={evento.estado} />
                   </div>
 
                   <div className="flex items-end justify-between gap-3 border-t border-neutral-100 pt-4">

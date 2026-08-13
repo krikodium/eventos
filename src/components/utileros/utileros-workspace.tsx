@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { HistorialEvento } from "./historial-evento";
+import { TIPO_TAREA } from "@/lib/estados";
 
 type EventoResumen = {
   id: string;
@@ -58,24 +60,6 @@ type Cantidades = {
   guardia: number;
   desarmeEvento: number;
   desarmeDepo: number;
-};
-
-const TIPOS_LABEL: Record<string, string> = {
-  ARMADO: "Armado",
-  ARMADO_1: "Armado 1",
-  ARMADO_2: "Armado 2",
-  GUARDIA: "Guardia",
-  EVENTO: "Día de evento",
-  DESARME_EVENTO: "Desarme en evento",
-  DESARME_DEPO: "Desarme en depósito",
-};
-
-const ESTADOS_LABEL: Record<string, string> = {
-  BORRADOR: "Borrador",
-  CONFIRMADO: "Confirmado",
-  EN_CURSO: "En curso",
-  FINALIZADO: "Finalizado",
-  FACTURADO: "Facturado",
 };
 
 const money = new Intl.NumberFormat("es-AR", {
@@ -248,7 +232,7 @@ export function UtilerosWorkspace({
         evento.nombre.toLocaleLowerCase("es").includes(normalized) ||
         evento.cliente.toLocaleLowerCase("es").includes(normalized) ||
         tareas.some((tarea) =>
-          (TIPOS_LABEL[tarea.tipo] ?? tarea.tipo)
+          (TIPO_TAREA[tarea.tipo] ?? tarea.tipo)
             .toLocaleLowerCase("es")
             .includes(normalized)
         )
@@ -787,101 +771,13 @@ export function UtilerosWorkspace({
                 </div>
 
                 <div className="mt-6 overflow-hidden rounded-xl border border-neutral-200">
-                  {filteredHistory.map((item, index) => {
-                    const pendiente = Math.max(0, item.total - item.registrado);
-                    return (
-                      <article
-                        key={item.evento.id}
-                        className={`p-5 sm:p-6 ${index ? "border-t border-neutral-200" : ""}`}
-                      >
-                        <div className="grid gap-5 lg:grid-cols-[115px_minmax(0,1fr)_180px]">
-                          <div>
-                            <p className="text-sm font-semibold text-neutral-900">
-                              {date.format(new Date(item.evento.fecha))}
-                            </p>
-                            <span className="mt-2 inline-flex rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] font-semibold text-neutral-600">
-                              {ESTADOS_LABEL[item.evento.estado] ?? item.evento.estado}
-                            </span>
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                              <div>
-                                <Link
-                                  href={`/eventos/${item.evento.id}`}
-                                  className="text-base font-semibold text-neutral-950 hover:underline"
-                                >
-                                  {item.evento.nombre}
-                                </Link>
-                                <p className="mt-1 text-sm text-neutral-500">
-                                  {item.evento.cliente}
-                                </p>
-                              </div>
-                              <Link
-                                href={`/eventos/${item.evento.id}`}
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-600 hover:text-neutral-950"
-                              >
-                                Abrir evento <ArrowIcon />
-                              </Link>
-                            </div>
-                            <div className="mt-4 space-y-2">
-                              {item.tareas.map((tarea) => (
-                                <div
-                                  key={tarea.id}
-                                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-neutral-50 px-3.5 py-2.5"
-                                >
-                                  <span className="text-sm text-neutral-700">
-                                    <strong className="font-semibold text-neutral-900">
-                                      {TIPOS_LABEL[tarea.tipo] ?? tarea.tipo}
-                                    </strong>
-                                    {(tarea.tipo === "EVENTO" ||
-                                      tarea.tipo === "ARMADO" ||
-                                      tarea.tipo === "ARMADO_1" ||
-                                      tarea.tipo === "ARMADO_2") && (
-                                      <span className="ml-2 text-xs text-neutral-500">
-                                        {tarea.dias} {tarea.dias === 1 ? "día" : "días"}
-                                      </span>
-                                    )}
-                                  </span>
-                                  <span className="text-sm font-semibold tabular-nums text-neutral-900">
-                                    {money.format(tarea.monto)}
-                                  </span>
-                                </div>
-                              ))}
-                              {item.tareas.length === 0 && (
-                                <p className="rounded-lg bg-neutral-50 px-3.5 py-3 text-sm text-neutral-500">
-                                  Asignado al evento, sin tareas cargadas.
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <dl className="space-y-3 border-t border-neutral-200 pt-4 text-sm lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
-                            <div className="flex items-center justify-between gap-3">
-                              <dt className="text-neutral-500">Cotizado</dt>
-                              <dd className="font-semibold tabular-nums text-neutral-950">
-                                {money.format(item.total)}
-                              </dd>
-                            </div>
-                            <div className="flex items-center justify-between gap-3">
-                              <dt className="text-neutral-500">Registrado</dt>
-                              <dd className="font-medium tabular-nums text-neutral-700">
-                                {money.format(item.registrado)}
-                              </dd>
-                            </div>
-                            <div className="flex items-center justify-between gap-3 border-t border-neutral-200 pt-3">
-                              <dt className="font-medium text-neutral-700">Pendiente</dt>
-                              <dd
-                                className={`font-semibold tabular-nums ${
-                                  pendiente > 0 ? "text-amber-700" : "text-emerald-700"
-                                }`}
-                              >
-                                {money.format(pendiente)}
-                              </dd>
-                            </div>
-                          </dl>
-                        </div>
-                      </article>
-                    );
-                  })}
+                  {filteredHistory.map((item, index) => (
+                    <HistorialEvento
+                      key={item.evento.id}
+                      item={item}
+                      defaultOpen={filteredHistory.length === 1 || (index === 0 && Boolean(historyQuery))}
+                    />
+                  ))}
                   {filteredHistory.length === 0 && (
                     <div className="px-6 py-16 text-center">
                       <p className="text-sm font-semibold text-neutral-800">
