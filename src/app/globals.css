@@ -4,6 +4,9 @@
   --background: #f5f3ee;
   --foreground: #191918;
   --surface: #fbfaf7;
+  --surface-muted: #f8f6f1;
+  --surface-sidebar: #f0eee8;
+  --surface-active: #dcdad4;
   --border-subtle: #dedbd3;
 }
 
@@ -11,42 +14,164 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-sidebar: var(--surface-sidebar);
+  --color-surface-active: var(--surface-active);
   --color-border-subtle: var(--border-subtle);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /*
-   * Paleta principal inspirada en el panel administrativo de referencia.
-   * Conservamos los nombres sky/cyan para no duplicar estilos en todos los
-   * componentes, pero su representación visual es gris cálida y carbón.
+   * Acento de la app: gris cálido / carbón. Usá SIEMPRE `accent-*` en código
+   * nuevo (ej. text-accent-600, bg-accent-100).
    */
-  --color-sky-50: #f4f3f0;
-  --color-sky-100: #e9e7e2;
-  --color-sky-200: #d7d4cd;
-  --color-sky-300: #bbb8b1;
-  --color-sky-400: #92918d;
-  --color-sky-500: #686866;
-  --color-sky-600: #484847;
-  --color-sky-700: #343433;
-  --color-sky-800: #272726;
-  --color-sky-900: #1d1d1c;
-  --color-sky-950: #121211;
-  --color-cyan-50: #f4f3f0;
-  --color-cyan-100: #e9e7e2;
-  --color-cyan-200: #d7d4cd;
-  --color-cyan-300: #bbb8b1;
-  --color-cyan-400: #92918d;
-  --color-cyan-500: #686866;
-  --color-cyan-600: #484847;
-  --color-cyan-700: #343433;
-  --color-cyan-800: #272726;
-  --color-cyan-900: #1d1d1c;
-  --color-cyan-950: #121211;
+  --color-accent-50: #f4f3f0;
+  --color-accent-100: #e9e7e2;
+  --color-accent-200: #d7d4cd;
+  --color-accent-300: #bbb8b1;
+  --color-accent-400: #92918d;
+  --color-accent-500: #686866;
+  --color-accent-600: #484847;
+  --color-accent-700: #343433;
+  --color-accent-800: #272726;
+  --color-accent-900: #1d1d1c;
+  --color-accent-950: #121211;
+
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* ============================================================
+   Clases base del sistema. Codifican los patrones que ya venían
+   repitiéndose en las pantallas: no cambian el aspecto, lo unifican.
+   ============================================================ */
+@layer components {
+  /* --- Superficies --- */
+  .card {
+    @apply rounded-2xl border border-neutral-200 bg-white shadow-sm;
+  }
+
+  /* Tarjeta que reacciona al hover (listados, accesos rápidos). */
+  .card-interactive {
+    @apply rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all
+           hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md;
+  }
+
+  .panel {
+    @apply rounded-2xl border border-border-subtle bg-surface shadow-[0_8px_24px_rgba(36,35,32,0.04)];
+  }
+
+  .section-eyebrow {
+    @apply mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600;
+  }
+
+  /* --- Botones --- */
+  .btn {
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-semibold
+           transition focus:outline-none focus:ring-4
+           disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm;
+  }
+
+  .btn-primary {
+    @apply bg-neutral-900 text-white shadow-sm ring-neutral-900/15
+           hover:-translate-y-0.5 hover:bg-neutral-800 hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply border border-neutral-200 bg-white text-neutral-700 shadow-sm ring-neutral-900/10
+           hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md;
+  }
+
+  .btn-ghost {
+    @apply bg-neutral-100 text-neutral-700 ring-neutral-900/10 hover:bg-neutral-200;
+  }
+
+  .btn-sm {
+    @apply h-9 rounded-xl px-4 text-xs;
+  }
+
+  /* --- Formularios --- */
+  .label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-500;
+  }
+
+  .input {
+    @apply h-11 w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm text-neutral-900
+           placeholder-neutral-400 transition
+           hover:border-neutral-300
+           focus:border-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-900/10
+           disabled:bg-neutral-50 disabled:text-neutral-500;
+  }
+
+  .form-error {
+    @apply rounded-xl border border-rose-100 bg-rose-50 px-3 py-2 text-sm text-rose-600;
+  }
+
+  /* --- Tablas --- */
+  .table {
+    @apply w-full text-sm;
+  }
+
+  .table thead tr {
+    @apply border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-bold uppercase tracking-wider text-neutral-500;
+  }
+
+  .table th {
+    @apply px-4 py-3;
+  }
+
+  .table tbody tr {
+    @apply border-b border-neutral-100 transition-colors last:border-0 hover:bg-neutral-50/70;
+  }
+
+  .table td {
+    @apply px-4 py-3 align-middle text-neutral-600;
+  }
+
+  .table-wrap {
+    @apply overflow-x-auto rounded-2xl border border-neutral-200;
+  }
+
+  /* --- Badges --- */
+  .badge {
+    @apply inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .badge-neutral {
+    @apply bg-neutral-100 text-neutral-700;
+  }
+
+  .badge-accent {
+    @apply bg-accent-100 text-accent-800;
+  }
+
+  .badge-success {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+
+  .badge-warning {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .badge-danger {
+    @apply bg-rose-100 text-rose-700;
+  }
+
+  /* --- Estado vacío --- */
+  .empty {
+    @apply py-12 text-center text-sm text-neutral-500;
+  }
+}
+
+/* Foco visible consistente para navegación por teclado. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent-600);
+    outline-offset: 2px;
+  }
 }
 
 @keyframes skeleton-shimmer {

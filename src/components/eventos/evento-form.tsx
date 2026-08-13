@@ -91,13 +91,13 @@ export function EventoForm({ evento }: EventoFormProps) {
     }
   }
 
-  const inputClass = "w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100";
+  const inputClass = "w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-accent-500 focus:ring-4 focus:ring-accent-100";
   const labelClass = "mb-1.5 block text-xs font-semibold text-neutral-600";
 
   return (
     <form onSubmit={handleSubmit} className="w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <div className="border-b border-neutral-100 px-5 py-5 sm:px-6">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Información principal</p>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Información principal</p>
         <h2 className="text-lg font-semibold tracking-tight text-neutral-900">
           {evento ? "Editar evento" : "Nuevo evento"}
         </h2>
@@ -296,7 +296,7 @@ export function EventoForm({ evento }: EventoFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-700 disabled:opacity-50"
           >
             {loading ? <LoadingSpinner className="h-4 w-4" /> : null}
             {loading ? "Guardando..." : evento ? "Actualizar" : "Crear evento"}

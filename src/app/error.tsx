@@ -15,27 +15,24 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="panel w-full max-w-md px-6 py-8 text-center">
+        <p className="section-eyebrow">Error</p>
+        <h1 className="mb-2 text-2xl font-semibold tracking-[-0.025em] text-neutral-950">
           Algo salió mal
         </h1>
-        <p className="text-gray-600 mb-6">
-          Si las tablas de Eventos no están creadas, ejecuta{" "}
-          <code className="text-sm bg-gray-100 px-1 rounded">prisma/eventos-tables.sql</code>{" "}
+        <p className="mb-6 text-sm leading-relaxed text-neutral-500">
+          Si las tablas de Eventos no están creadas, ejecutá{" "}
+          <code className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-700">
+            prisma/eventos-tables.sql
+          </code>{" "}
           en la base de datos.
         </p>
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={() => reset()}
-            className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700"
-          >
+        <div className="flex justify-center gap-3">
+          <button onClick={() => reset()} className="btn btn-primary">
             Reintentar
           </button>
-          <Link
-            href="/"
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-          >
+          <Link href="/" className="btn btn-secondary">
             Ir al inicio
           </Link>
         </div>

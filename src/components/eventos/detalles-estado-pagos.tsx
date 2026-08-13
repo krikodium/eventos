@@ -55,7 +55,7 @@ function Row({
 function CardHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle?: string }) {
   return (
     <div className="border-b border-neutral-100 px-5 py-4">
-      <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-600">{eyebrow}</p>
+      <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-600">{eyebrow}</p>
       <h3 className="text-base font-semibold tracking-tight text-neutral-900">{title}</h3>
       {subtitle && <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>}
     </div>

@@ -190,7 +190,7 @@ export function PlanillaUtileros({
     <div className="relative overflow-hidden rounded-2xl border border-neutral-200 shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-neutral-100 px-6 py-4">
         <div>
-          <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-600">Equipo operativo</p>
+          <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-600">Equipo operativo</p>
           <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Planilla de pagos · Utileros</h2>
         </div>
         <div className="flex items-center gap-3">

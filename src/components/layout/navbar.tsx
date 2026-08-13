@@ -23,7 +23,7 @@ function NavLink({ href, label, icon, exact = false }: { href: string; label: st
   const pathname = usePathname();
   const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
   return (
-    <Link href={href} className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${active ? "bg-[#dcdad4] text-neutral-950 ring-1 ring-neutral-300/80 shadow-sm" : "text-neutral-500 hover:bg-white/70 hover:text-neutral-900"}`}>
+    <Link href={href} className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${active ? "bg-surface-active text-neutral-950 ring-1 ring-neutral-300/80 shadow-sm" : "text-neutral-500 hover:bg-white/70 hover:text-neutral-900"}`}>
       <span className={active ? "text-neutral-900" : "text-neutral-400 transition group-hover:text-neutral-600"}><NavIcon name={icon} /></span>
       <span>{label}</span>
       {active ? <span className="ml-auto h-1.5 w-1.5 rounded-full bg-neutral-700" /> : null}
@@ -39,7 +39,7 @@ export function Navbar() {
 
   return (
     <>
-      <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-[#dedbd3] bg-[#f0eee8] text-neutral-800 lg:flex">
+      <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border-subtle bg-surface-sidebar text-neutral-800 lg:flex">
         <div className="flex h-20 items-center gap-3 border-b border-neutral-100 px-5">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-300 bg-white text-lg font-light tracking-tight text-neutral-900">HC</span>
           <div><p className="text-sm font-semibold tracking-tight text-neutral-900">Eventos HC</p><p className="mt-0.5 text-[11px] text-neutral-500">Gestión integral</p></div>
@@ -65,7 +65,7 @@ export function Navbar() {
         </nav>
 
         <div className="border-t border-neutral-100 p-3">
-          <div className="flex items-center gap-3 rounded-xl border border-[#dedbd3] bg-[#f8f6f1] p-3">
+          <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-surface-muted p-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold text-white">{initials}</span>
             <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-neutral-900">{session?.user?.name || "Usuario"}</p><p className="mt-0.5 text-[10px] uppercase tracking-wide text-neutral-400">{isAdmin ? "Administrador" : "Operador"}</p></div>
             <button onClick={() => signOut({ callbackUrl: "/login" })} aria-label="Cerrar sesión" title="Cerrar sesión" className="rounded-lg p-2 text-neutral-400 transition hover:bg-neutral-200 hover:text-neutral-700">
@@ -75,7 +75,7 @@ export function Navbar() {
         </div>
       </aside>
 
-      <nav className="sticky top-0 z-30 w-full border-b border-[#dedbd3] bg-[#f8f6f1]/95 backdrop-blur lg:hidden">
+      <nav className="sticky top-0 z-30 w-full border-b border-border-subtle bg-surface-muted/95 backdrop-blur lg:hidden">
         <div className="flex h-14 items-center gap-3 px-4">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-light tracking-tight text-neutral-900">HC</span>
           <div className="min-w-0 flex-1 overflow-x-auto">

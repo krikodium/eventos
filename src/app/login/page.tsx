@@ -72,12 +72,12 @@ function LoginForm() {
             autoComplete="email"
             inputMode="email"
             placeholder="tu@email.com"
-            className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+            className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-accent-500 focus:ring-4 focus:ring-accent-100"
           />
         </div>
         <PasswordField id="password" label="Contraseña" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" />
         <div className="flex justify-end">
-          <Link href="/recuperar" className="text-xs font-semibold text-sky-700 transition hover:text-sky-900">¿Olvidaste tu contraseña?</Link>
+          <Link href="/recuperar" className="text-xs font-semibold text-accent-700 transition hover:text-accent-900">¿Olvidaste tu contraseña?</Link>
         </div>
         {error && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
         <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60">

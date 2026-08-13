@@ -116,7 +116,7 @@ export function UsuariosManager({ usuarios }: { usuarios: Usuario[] }) {
     <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)] xl:items-start">
       <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm xl:sticky xl:top-20">
         <div className="border-b border-neutral-100 px-6 py-5">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Nuevo acceso</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Nuevo acceso</p>
           <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Invitar usuario</h2>
           <p className="mt-1 text-sm text-neutral-500">Le llega un email para confirmar la cuenta y definir su contraseña.</p>
         </div>
@@ -180,7 +180,7 @@ export function UsuariosManager({ usuarios }: { usuarios: Usuario[] }) {
       </div>
       <div className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <div className="border-b border-neutral-100 px-6 py-5">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Equipo</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Equipo</p>
           <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Usuarios registrados</h2>
           <p className="mt-1 text-sm text-neutral-500">
             Los administradores pueden ajustar permisos del módulo Eventos por usuario (no admin).
@@ -214,7 +214,7 @@ export function UsuariosManager({ usuarios }: { usuarios: Usuario[] }) {
                             type="button"
                             disabled={reenviandoId === u.id}
                             onClick={() => reenviarInvitacion(u.id)}
-                            className="text-xs font-medium text-sky-600 hover:text-sky-800 disabled:opacity-50"
+                            className="text-xs font-medium text-accent-600 hover:text-accent-800 disabled:opacity-50"
                           >
                             {reenviandoId === u.id ? "Reenviando..." : "Reenviar invitación"}
                           </button>
@@ -233,7 +233,7 @@ export function UsuariosManager({ usuarios }: { usuarios: Usuario[] }) {
                               abrirPermisos(u);
                             }
                           }}
-                          className="text-sky-600 hover:text-sky-800 text-xs font-medium"
+                          className="text-accent-600 hover:text-accent-800 text-xs font-medium"
                         >
                           {expandidoId === u.id ? "Cerrar" : "Editar"}
                         </button>

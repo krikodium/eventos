@@ -82,13 +82,13 @@ function ConfirmarForm() {
   return (
     <main className="grid min-h-screen bg-neutral-50 lg:grid-cols-[minmax(380px,0.85fr)_1.15fr]">
       <section className="relative hidden overflow-hidden bg-neutral-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-sky-500/15 blur-3xl" />
+        <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-accent-500/15 blur-3xl" />
         <div className="relative flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-lg font-black text-neutral-950">HC</span>
           <div><p className="text-sm font-semibold">Eventos HC</p><p className="text-xs text-neutral-500">Gestión integral</p></div>
         </div>
         <div className="relative max-w-lg">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">Activá tu cuenta</p>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Activá tu cuenta</p>
           <h1 className="text-4xl font-semibold leading-tight tracking-tight">Un último paso y estás adentro.</h1>
           <p className="mt-5 max-w-md text-sm leading-relaxed text-neutral-400">Definí tu contraseña para completar el acceso a la plataforma.</p>
         </div>
@@ -121,7 +121,7 @@ function ConfirmarForm() {
           {estado === "listo" && (
             <>
               <div className="mb-8">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-600">Bienvenido{nombre ? `, ${nombre}` : ""}</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent-600">Bienvenido{nombre ? `, ${nombre}` : ""}</p>
                 <h2 className="text-3xl font-semibold tracking-tight text-neutral-950">Definí tu contraseña</h2>
                 <p className="mt-2 text-sm text-neutral-500">
                   Activando la cuenta de <span className="font-medium text-neutral-700">{email}</span>.

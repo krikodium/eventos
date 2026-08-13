@@ -114,7 +114,7 @@ export function ProveedoresManager() {
       {tab === "rubros" && (
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
           <div className="border-b border-neutral-100 px-6 py-5">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Clasificación</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Clasificación</p>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Agregar rubro</h2>
             <p className="mt-1 text-sm text-neutral-500">Categorías para clasificar proveedores.</p>
           </div>
@@ -125,7 +125,7 @@ export function ProveedoresManager() {
                 value={nuevoRubro}
                 onChange={(e) => setNuevoRubro(e.target.value)}
                 placeholder="Ej: Catering, Música..."
-                className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 outline-none focus:border-accent-500 focus:ring-4 focus:ring-accent-100"
               />
               <button
                 type="submit"
@@ -149,7 +149,7 @@ export function ProveedoresManager() {
       {tab === "proveedores" && (
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
           <div className="border-b border-neutral-100 px-6 py-5">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Directorio</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Directorio</p>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Agregar proveedor</h2>
             <p className="mt-1 text-sm text-neutral-500">Registrá proveedores y asignales un rubro.</p>
           </div>

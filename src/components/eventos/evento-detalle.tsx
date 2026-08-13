@@ -172,7 +172,7 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
       <div className="px-6 py-5 border-b border-neutral-100">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-600">Registro operativo</p>
+            <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-600">Registro operativo</p>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Movimientos del evento</h2>
             <p className="text-neutral-500 text-sm mt-0.5">
               {verPagos && verUtileros && verCaja && verIngresos

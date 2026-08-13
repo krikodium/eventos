@@ -815,7 +815,7 @@ export function PresupuestosGenerator() {
   }
 
   const inputClass =
-    "w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100";
+    "w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-accent-500 focus:ring-4 focus:ring-accent-100";
   const labelClass = "mb-1.5 block text-xs font-semibold text-neutral-600";
 
   return (
@@ -862,7 +862,7 @@ export function PresupuestosGenerator() {
       <div className="min-w-0 space-y-5">
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
           <div className="border-b border-neutral-100 px-5 py-4 sm:px-6">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Paso 1</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Paso 1</p>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900">
               Datos del presupuesto
             </h2>
@@ -958,7 +958,7 @@ export function PresupuestosGenerator() {
                   type="button"
                   onClick={guardarPresupuesto}
                   disabled={guardandoPresupuesto}
-                  className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg text-sm transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 bg-accent-600 hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg text-sm transition-colors flex items-center gap-2"
                 >
                   {guardandoPresupuesto ? <LoadingSpinner className="h-4 w-4 text-white" /> : null}
                   {guardandoPresupuesto ? "Guardando..." : presupuestoId ? "Actualizar presupuesto" : "Guardar presupuesto"}
@@ -982,7 +982,7 @@ export function PresupuestosGenerator() {
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4 sm:px-6">
             <div>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Paso 2</p>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Paso 2</p>
               <h2 className="text-lg font-semibold tracking-tight text-neutral-900">
               Ítems del presupuesto
               </h2>
@@ -1063,7 +1063,7 @@ export function PresupuestosGenerator() {
                   <button
                     type="button"
                     onClick={() => duplicateItem(item)}
-                    className="p-1 text-neutral-400 transition hover:text-sky-600"
+                    className="p-1 text-neutral-400 transition hover:text-accent-600"
                     title="Duplicar"
                     aria-label={`Duplicar ítem ${idx + 1}`}
                   >
@@ -1116,7 +1116,7 @@ export function PresupuestosGenerator() {
         {/* Honorarios */}
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
           <div className="border-b border-neutral-100 px-5 py-4 sm:px-6">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Paso 3</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Paso 3</p>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900">
               Honorarios
             </h2>
@@ -1171,7 +1171,7 @@ export function PresupuestosGenerator() {
         {/* Cargas Sociales e Impuestos */}
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
           <div className="border-b border-neutral-100 px-5 py-4 sm:px-6">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Paso 4</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-600">Paso 4</p>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900">
               Cargas sociales e impuestos
             </h2>
@@ -1304,7 +1304,7 @@ export function PresupuestosGenerator() {
       <div className="xl:sticky xl:top-24">
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-lg shadow-neutral-200/60">
           <div className="bg-neutral-950 px-5 py-5 text-white">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-300">Resumen en vivo</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent-300">Resumen en vivo</p>
             <h2 className="text-lg font-semibold tracking-tight">
               Vista previa
             </h2>

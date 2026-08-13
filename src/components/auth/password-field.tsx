@@ -20,7 +20,7 @@ export function PasswordField({ id, label, value, onChange, autoComplete, placeh
         <button
           type="button"
           onClick={() => setVisible((current) => !current)}
-          className="text-xs font-medium text-sky-700 transition hover:text-sky-900"
+          className="text-xs font-medium text-accent-700 transition hover:text-accent-900"
           aria-controls={id}
           aria-pressed={visible}
         >
@@ -36,7 +36,7 @@ export function PasswordField({ id, label, value, onChange, autoComplete, placeh
         minLength={autoComplete === "new-password" ? 8 : undefined}
         autoComplete={autoComplete}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+        className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-accent-500 focus:ring-4 focus:ring-accent-100"
       />
     </div>
   );
