@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
+import { EstadoEventoBadge } from "@/components/ui/estado-badge";
+import { TIPO_EVENTO } from "@/lib/estados";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { EventoDetalle } from "@/components/eventos/evento-detalle";
@@ -55,18 +57,6 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
   const totalEgresos = totalPagos + totalUtileros + totalCajaChica;
   const balance = totalIngresos - totalEgresos;
 
-  const estados: Record<string, string> = {
-    BORRADOR: "Borrador",
-    CONFIRMADO: "Confirmado",
-    EN_CURSO: "En curso",
-    FINALIZADO: "Finalizado",
-    FACTURADO: "Facturado",
-  };
-  const tipos: Record<string, string> = {
-    CORPORATIVO: "Corporativo",
-    PARTICULAR: "Particular",
-  };
-
   const kpiAccent: Record<string, { tint: string; chip: string; bar: string }> = {
     emerald: { tint: "from-white to-neutral-50/60", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-400 to-emerald-500" },
     orange: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
@@ -109,7 +99,7 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
                 {evento.nombre}
               </h1>
               <div className="flex flex-wrap items-center gap-2 mt-2 text-neutral-600">
-                <span className="text-sm">{tipos[evento.tipo]}</span>
+                <span className="text-sm">{TIPO_EVENTO[evento.tipo] ?? evento.tipo}</span>
                 <span className="text-neutral-300">•</span>
                 <span className="text-sm">{evento.cliente}</span>
                 <span className="text-neutral-300">•</span>
@@ -122,8 +112,8 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
                   })}
                 </span>
               </div>
-              <span className="inline-flex mt-3 px-2.5 py-1 rounded-md text-xs font-medium border border-neutral-200 bg-neutral-100 text-neutral-800">
-                {estados[evento.estado]}
+              <span className="mt-3 inline-flex">
+                <EstadoEventoBadge estado={evento.estado} dot />
               </span>
             </div>
             {isAdmin && (

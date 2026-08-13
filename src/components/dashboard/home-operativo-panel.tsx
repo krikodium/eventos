@@ -1,23 +1,9 @@
 import Link from "next/link";
+import { EstadoEventoBadge } from "@/components/ui/estado-badge";
 import type { HomeOperativoInsights } from "@/lib/home-operativo-insights";
 import type { EventosPermisos } from "@/lib/permisos";
 import { CAJA_SENTIDO_INGRESO } from "@/lib/caja-chica-pesos";
 
-const ESTADO_LABEL: Record<string, string> = {
-  BORRADOR: "Borrador",
-  CONFIRMADO: "Confirmado",
-  EN_CURSO: "En curso",
-  FINALIZADO: "Finalizado",
-  FACTURADO: "Facturado",
-};
-
-const ESTADO_STYLE: Record<string, string> = {
-  BORRADOR: "bg-neutral-100 text-neutral-600",
-  CONFIRMADO: "bg-emerald-50 text-emerald-700",
-  EN_CURSO: "bg-neutral-200 text-neutral-800",
-  FINALIZADO: "bg-neutral-100 text-neutral-600",
-  FACTURADO: "bg-neutral-900 text-white",
-};
 
 function fmtMoney(v: number) {
   return `$${v.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
@@ -172,12 +158,8 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
                         })}
                       </p>
                     </div>
-                    <span
-                      className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded-md ${
-                        ESTADO_STYLE[e.estado] ?? "bg-neutral-100 text-neutral-600"
-                      }`}
-                    >
-                      {ESTADO_LABEL[e.estado] ?? e.estado}
+                    <span className="shrink-0">
+                      <EstadoEventoBadge estado={e.estado} />
                     </span>
                   </Link>
                 </li>

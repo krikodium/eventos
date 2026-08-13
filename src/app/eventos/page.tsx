@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
+import { EstadoEventoBadge } from "@/components/ui/estado-badge";
+import { TIPO_EVENTO, ESTADO_EVENTO } from "@/lib/estados";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
@@ -29,18 +31,6 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
     },
   });
 
-  const estados: Record<string, string> = {
-    BORRADOR: "Borrador",
-    CONFIRMADO: "Confirmado",
-    EN_CURSO: "En curso",
-    FINALIZADO: "Finalizado",
-    FACTURADO: "Facturado",
-  };
-
-  const tipos: Record<string, string> = {
-    CORPORATIVO: "Corporativo",
-    PARTICULAR: "Particular",
-  };
 
   const normalizar = (v: string | null | undefined) => v?.toLowerCase().trim() ?? "";
   const eventos = todosEventos.filter((e) => {
@@ -51,21 +41,6 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
       );
     return coincideTexto && (!estadoFiltro || e.estado === estadoFiltro) && (!tipoFiltro || e.tipo === tipoFiltro);
   });
-
-  const estadoStyle = (estado: string) => {
-    switch (estado) {
-      case "FACTURADO":
-        return "bg-neutral-900 text-white border-neutral-900";
-      case "FINALIZADO":
-        return "bg-neutral-200 text-neutral-700 border-neutral-200";
-      case "EN_CURSO":
-        return "bg-neutral-100 text-neutral-800 border-neutral-200";
-      case "CONFIRMADO":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      default:
-        return "bg-amber-50 text-amber-800 border-amber-200";
-    }
-  };
 
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
@@ -244,7 +219,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                   className="peer h-11 w-full appearance-none rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 px-4 pr-10 text-sm font-medium text-neutral-800 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition hover:border-neutral-300 focus:border-neutral-900 focus:bg-white focus:ring-4 focus:ring-neutral-900/10"
                 >
                   <option value="">Todos los estados</option>
-                  {Object.entries(estados).map(([estado, label]) => (
+                  {Object.entries(ESTADO_EVENTO).map(([estado, { label }]) => (
                     <option key={estado} value={estado}>
                       {label}
                     </option>
@@ -267,7 +242,7 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                   className="peer h-11 w-full appearance-none rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 px-4 pr-10 text-sm font-medium text-neutral-800 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition hover:border-neutral-300 focus:border-neutral-900 focus:bg-white focus:ring-4 focus:ring-neutral-900/10"
                 >
                   <option value="">Todos los tipos</option>
-                  {Object.entries(tipos).map(([tipo, label]) => (
+                  {Object.entries(TIPO_EVENTO).map(([tipo, label]) => (
                     <option key={tipo} value={tipo}>
                       {label}
                     </option>
@@ -345,13 +320,13 @@ export default async function EventosPage({ searchParams }: EventosPageProps) {
                             <div className="min-w-0">
                               <p className="truncate text-sm font-semibold text-neutral-950">{e.nombre}</p>
                               <p className="mt-0.5 truncate text-xs text-neutral-500">
-                                {tipos[e.tipo] ?? e.tipo}
+                                {TIPO_EVENTO[e.tipo] ?? e.tipo}
                                 {ubicacion && <> · {ubicacion}</>}
                               </p>
                             </div>
                           </div>
-                          <span className={`inline-flex shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${estadoStyle(e.estado)}`}>
-                            {estados[e.estado] ?? e.estado}
+                          <span className="shrink-0">
+                            <EstadoEventoBadge estado={e.estado} />
                           </span>
                         </div>
 
