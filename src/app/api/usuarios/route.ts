@@ -18,20 +18,20 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.eventosUsuario.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: "El email ya está registrado" }, { status: 400 });
     }
     const isAdmin = role === "ADMIN";
 
     // Se crea SIN contraseña: el invitado la define al confirmar el email.
-    const user = await prisma.user.create({
+    const user = await prisma.eventosUsuario.create({
       data: {
         email,
         name,
         password: null,
         emailVerified: null,
-        role: isAdmin ? "ADMIN" : "VENDEDOR",
+        role: isAdmin ? "ADMIN" : "EMPLEADO",
         ...(eventosPermisos && typeof eventosPermisos === "object" && !isAdmin
           ? { eventosPermisos: eventosPermisos as object }
           : {}),
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       await crearYEnviarInvitacion(user);
     } catch (mailErr) {
       // El usuario quedó creado pero el email falló: lo borramos para no dejar una cuenta huérfana.
-      await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+      await prisma.eventosUsuario.delete({ where: { id: user.id } }).catch(() => {});
       console.error("Error enviando invitación:", mailErr);
       return NextResponse.json(
         { error: mailErr instanceof Error ? mailErr.message : "No se pudo enviar la invitación" },

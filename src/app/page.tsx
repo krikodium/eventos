@@ -216,12 +216,12 @@ export default async function HomePage() {
   const margenBarWidth = Math.max(0, Math.min(100, margenPct));
 
   const accentStyles: Record<string, { tint: string; chip: string; bar: string }> = {
-    slate: { tint: "from-white to-slate-50", chip: "bg-slate-100 text-slate-600", bar: "from-slate-300 to-slate-400" },
-    teal: { tint: "from-white to-teal-50/70", chip: "bg-teal-50 text-teal-700", bar: "from-teal-300 to-teal-500" },
-    emerald: { tint: "from-white to-emerald-50/70", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-300 to-emerald-500" },
-    orange: { tint: "from-white to-orange-50/70", chip: "bg-orange-50 text-orange-700", bar: "from-orange-300 to-orange-500" },
-    violet: { tint: "from-white to-violet-50/70", chip: "bg-violet-50 text-violet-700", bar: "from-violet-300 to-violet-500" },
-    rose: { tint: "from-white to-rose-50/70", chip: "bg-rose-50 text-rose-700", bar: "from-rose-300 to-rose-500" },
+    slate: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
+    teal: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
+    emerald: { tint: "from-white to-neutral-50/60", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-400 to-emerald-500" },
+    orange: { tint: "from-white to-neutral-50/60", chip: "bg-rose-50 text-rose-700", bar: "from-rose-300 to-rose-400" },
+    violet: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
+    rose: { tint: "from-white to-neutral-50/60", chip: "bg-rose-50 text-rose-700", bar: "from-rose-400 to-rose-500" },
   };
 
   const kpiCards: {
@@ -295,7 +295,7 @@ export default async function HomePage() {
             <div className="p-6 sm:p-7">
               <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                     Panel administrativo
                   </p>
                   <h1 className="mt-3 text-3xl font-semibold tracking-tight text-neutral-900">
@@ -341,15 +341,15 @@ export default async function HomePage() {
                   href={proximoEvento ? `/eventos/${proximoEvento.id}` : "/eventos"}
                   className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
                 >
-                  <span className="absolute inset-y-0 left-0 w-1 bg-teal-500" />
+                  <span className="absolute inset-y-0 left-0 w-1 bg-neutral-800" />
                   <div className="pl-2.5">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-100 text-neutral-700">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </span>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-teal-700">Próximo evento</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Próximo evento</p>
                     </div>
                     {proximoEvento ? (
                       <div className="mt-3">
@@ -357,7 +357,7 @@ export default async function HomePage() {
                         <p className="truncate text-xs text-neutral-500">{proximoEvento.cliente}</p>
                         <div className="mt-3 flex items-center justify-between gap-2">
                           <span className="text-xs font-medium text-neutral-600">{fmtDate(proximoEvento.fecha)}</span>
-                          <span className="rounded-full bg-teal-50 px-2.5 py-1 text-[11px] font-semibold text-teal-700">
+                          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-semibold text-neutral-600">
                             {diasHasta(proximoEvento.fecha)}
                           </span>
                         </div>
@@ -378,11 +378,11 @@ export default async function HomePage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 19V5m0 14h16M8 15l3-3 3 2 5-7" />
                         </svg>
                       </span>
-                      <p className={`text-[11px] font-semibold uppercase tracking-wider ${balance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
                         Resultado del negocio
                       </p>
                     </div>
-                    <p className={`mt-3 text-2xl font-semibold tabular-nums ${balance >= 0 ? "text-emerald-900" : "text-rose-800"}`}>
+                    <p className="mt-3 text-2xl font-semibold tabular-nums text-neutral-900">
                       {balance >= 0 ? "+" : ""}{fmtMoney(balance)}
                     </p>
                     <div className="mt-3">
@@ -402,16 +402,16 @@ export default async function HomePage() {
 
                 {/* Agenda operativa */}
                 <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-                  <span className="absolute inset-y-0 left-0 w-1 bg-sky-500" />
+                  <span className="absolute inset-y-0 left-0 w-1 bg-neutral-400" />
                   <div className="pl-2.5">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 6v6l4 2" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
                       </span>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-700">Agenda operativa</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Agenda operativa</p>
                     </div>
                     <div className="mt-3 flex items-baseline gap-2">
                       <p className="text-2xl font-semibold tabular-nums text-neutral-900">{eventosProximos}</p>
@@ -442,7 +442,7 @@ export default async function HomePage() {
         <div className="flex flex-wrap gap-2 mb-8 mt-2">
           <Link
             href="/eventos"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-teal-800 hover:bg-teal-900 text-white shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-neutral-900 hover:bg-neutral-800 text-white shadow-sm"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -585,7 +585,7 @@ export default async function HomePage() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-teal-500" />
+                            <span className="h-2 w-2 rounded-full bg-neutral-400" />
                             <p className="text-sm font-semibold text-neutral-950 truncate">{e.nombre}</p>
                           </div>
                           <p className="text-xs text-neutral-500 mt-1 truncate">{e.cliente}</p>

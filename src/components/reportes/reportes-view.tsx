@@ -153,7 +153,7 @@ function RankingList({
               <p className="shrink-0 text-sm font-semibold tabular-nums text-neutral-950">{formatMoney(item.total)}</p>
             </div>
             <div className="ml-10 h-1.5 overflow-hidden rounded-full bg-neutral-100">
-              <div className="h-full rounded-full bg-sky-500" style={{ width: `${Math.max(4, (item.total / max) * 100)}%` }} />
+              <div className="h-full rounded-full bg-neutral-800" style={{ width: `${Math.max(4, (item.total / max) * 100)}%` }} />
             </div>
           </div>
         ))}
@@ -409,13 +409,13 @@ export function ReportesView() {
       <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
         <div className="grid gap-6 border-b border-neutral-100 px-5 py-6 sm:px-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-600">Configuración del análisis</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">Configuración del análisis</p>
             <h2 className="mt-2 text-xl font-semibold tracking-tight text-neutral-950">¿Qué querés analizar?</h2>
             <p className="mt-1 text-sm text-neutral-500">Elegí un período puntual o mirá la evolución financiera de varios meses.</p>
           </div>
           <div className="inline-flex w-full rounded-xl bg-neutral-100 p-1 lg:w-auto" role="group" aria-label="Tipo de reporte">
             <button type="button" onClick={() => selectMode("periodo")} aria-pressed={mode === "periodo"} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition lg:flex-none ${mode === "periodo" ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}><ReportIcon name="calendar" />Por período</button>
-            <button type="button" onClick={() => selectMode("historico")} aria-pressed={mode === "historico"} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition lg:flex-none ${mode === "historico" ? "bg-sky-600 text-white shadow-sm shadow-sky-600/20" : "text-neutral-500 hover:text-neutral-800"}`}><ReportIcon name="history" />Histórico</button>
+            <button type="button" onClick={() => selectMode("historico")} aria-pressed={mode === "historico"} className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition lg:flex-none ${mode === "historico" ? "bg-neutral-900 text-white shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}><ReportIcon name="history" />Histórico</button>
           </div>
         </div>
 
@@ -426,15 +426,15 @@ export function ReportesView() {
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">Accesos rápidos</p>
                 <div className="grid grid-cols-3 gap-2">
                   {([['mes', 'Mes actual'], ['trimestre', 'Últimos 3 meses'], ['anio', 'Año actual']] as const).map(([value, label]) => (
-                    <button key={value} type="button" onClick={() => applyPeriodPreset(value)} className={`rounded-xl border px-3 py-3 text-xs font-semibold transition ${activePreset === value ? "border-sky-200 bg-sky-50 text-sky-800" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"}`}>{label}</button>
+                    <button key={value} type="button" onClick={() => applyPeriodPreset(value)} className={`rounded-xl border px-3 py-3 text-xs font-semibold transition ${activePreset === value ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"}`}>{label}</button>
                   ))}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label htmlFor="report-desde" className="mb-1.5 block text-xs font-semibold text-neutral-600">Desde</label><input id="report-desde" type="date" value={desde} onChange={(event) => { setDesde(event.target.value); setActivePreset("personalizado"); }} max={hasta} className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm text-neutral-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100" /></div>
-                <div><label htmlFor="report-hasta" className="mb-1.5 block text-xs font-semibold text-neutral-600">Hasta</label><input id="report-hasta" type="date" value={hasta} onChange={(event) => { setHasta(event.target.value); setActivePreset("personalizado"); }} min={desde} className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm text-neutral-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100" /></div>
+                <div><label htmlFor="report-desde" className="mb-1.5 block text-xs font-semibold text-neutral-600">Desde</label><input id="report-desde" type="date" value={desde} onChange={(event) => { setDesde(event.target.value); setActivePreset("personalizado"); }} max={hasta} className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm text-neutral-900 outline-none transition focus:border-neutral-500 focus:ring-4 focus:ring-neutral-100" /></div>
+                <div><label htmlFor="report-hasta" className="mb-1.5 block text-xs font-semibold text-neutral-600">Hasta</label><input id="report-hasta" type="date" value={hasta} onChange={(event) => { setHasta(event.target.value); setActivePreset("personalizado"); }} min={desde} className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm text-neutral-900 outline-none transition focus:border-neutral-500 focus:ring-4 focus:ring-neutral-100" /></div>
               </div>
-              <button type="button" onClick={cargar} disabled={loading} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-600/20 transition hover:bg-sky-700 disabled:opacity-60">{loading ? <LoadingSpinner className="h-4 w-4 text-white" /> : <ReportIcon name="chart" />}{loading ? "Generando..." : "Generar reporte"}</button>
+              <button type="button" onClick={cargar} disabled={loading} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 disabled:opacity-60">{loading ? <LoadingSpinner className="h-4 w-4 text-white" /> : <ReportIcon name="chart" />}{loading ? "Generando..." : "Generar reporte"}</button>
             </div>
           ) : (
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
@@ -442,11 +442,11 @@ export function ReportesView() {
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">Profundidad histórica</p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {([['12', '12 meses', 'Último año'], ['24', '24 meses', 'Dos años'], ['36', '36 meses', 'Tres años'], ['todo', 'Todo', 'Desde el primer registro']] as const).map(([value, label, detail]) => (
-                    <button key={value} type="button" onClick={() => applyHistoricalRange(value)} className={`rounded-xl border px-4 py-3 text-left transition ${historicalRange === value ? "border-sky-300 bg-sky-50 text-sky-950 shadow-sm shadow-sky-100" : "border-neutral-200 bg-white text-neutral-700 hover:border-sky-200 hover:bg-sky-50/40"}`}><span className="block text-sm font-semibold">{label}</span><span className={`mt-0.5 block text-[11px] ${historicalRange === value ? "text-sky-600" : "text-neutral-400"}`}>{detail}</span></button>
+                    <button key={value} type="button" onClick={() => applyHistoricalRange(value)} className={`rounded-xl border px-4 py-3 text-left transition ${historicalRange === value ? "border-neutral-900 bg-neutral-900 text-white shadow-sm" : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50"}`}><span className="block text-sm font-semibold">{label}</span><span className={`mt-0.5 block text-[11px] ${historicalRange === value ? "text-neutral-300" : "text-neutral-400"}`}>{detail}</span></button>
                   ))}
                 </div>
               </div>
-              <button type="button" onClick={cargar} disabled={loading} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-600/20 transition hover:bg-sky-700 disabled:opacity-60">{loading ? <LoadingSpinner className="h-4 w-4 text-white" /> : <ReportIcon name="history" />}{loading ? "Construyendo histórico..." : "Generar histórico"}</button>
+              <button type="button" onClick={cargar} disabled={loading} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 disabled:opacity-60">{loading ? <LoadingSpinner className="h-4 w-4 text-white" /> : <ReportIcon name="history" />}{loading ? "Construyendo histórico..." : "Generar histórico"}</button>
             </div>
           )}
           {error && <p role="alert" className="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
@@ -455,7 +455,7 @@ export function ReportesView() {
 
       {!data && !loading ? (
         <section className="flex min-h-64 flex-col items-center justify-center rounded-3xl border border-dashed border-neutral-300 bg-white/60 px-6 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-700"><ReportIcon name="trend" /></span>
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-700"><ReportIcon name="trend" /></span>
           <h3 className="mt-4 text-base font-semibold text-neutral-900">Tu análisis aparecerá acá</h3>
           <p className="mt-1 max-w-md text-sm text-neutral-500">Configurá el alcance y generá el reporte para ver resultados, evolución, rankings y exportaciones.</p>
         </section>
@@ -475,13 +475,13 @@ export function ReportesView() {
             </div>
           </div>
 
-          <section className="overflow-hidden rounded-3xl border border-sky-100 bg-white shadow-sm">
-            <div className="h-1.5 bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400" />
+          <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
+            <div className="h-1.5 bg-neutral-900" />
             <div className="grid xl:grid-cols-[1.05fr_1fr]">
-              <div className="relative overflow-hidden border-b border-sky-100 bg-gradient-to-br from-sky-50 via-white to-emerald-50/60 p-6 sm:p-8 xl:border-b-0 xl:border-r">
+              <div className="relative overflow-hidden border-b border-neutral-200 bg-gradient-to-br from-neutral-50 via-white to-neutral-50/60 p-6 sm:p-8 xl:border-b-0 xl:border-r">
                 <div className={`absolute bottom-0 left-0 top-0 w-1 ${data.totales.balance >= 0 ? "bg-emerald-500" : "bg-rose-500"}`} />
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-sky-200 bg-white text-sky-700 shadow-sm"><ReportIcon name="trend" /></span>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-600">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-700 shadow-sm"><ReportIcon name="trend" /></span>
                   Resultado neto
                 </div>
                 <div className="mt-5 flex flex-wrap items-end gap-3">
@@ -491,7 +491,7 @@ export function ReportesView() {
                 <p className="mt-4 max-w-xl text-sm leading-relaxed text-neutral-600">Ingresos menos pagos a proveedores, jornadas de utileros y egresos de caja chica dentro del período seleccionado.</p>
               </div>
               <div className="grid grid-cols-2 gap-px bg-neutral-100">
-                {[['Ingresos', data.totales.ingresos, 'text-emerald-700', 'bg-emerald-500'], ['Egresos', data.totales.egresos, 'text-rose-700', 'bg-rose-500'], ['Eventos', cantidadEventos, 'text-neutral-950', 'bg-sky-500'], ['Rentables', `${rentables}/${cantidadEventos}`, 'text-sky-700', 'bg-cyan-500']].map(([label, value, color, accent]) => (
+                {[['Ingresos', data.totales.ingresos, 'text-emerald-700', 'bg-emerald-500'], ['Egresos', data.totales.egresos, 'text-rose-700', 'bg-rose-500'], ['Eventos', cantidadEventos, 'text-neutral-950', 'bg-neutral-400'], ['Rentables', `${rentables}/${cantidadEventos}`, 'text-neutral-950', 'bg-neutral-400']].map(([label, value, color, accent]) => (
                   <div key={String(label)} className="group relative min-h-32 bg-white p-5 transition hover:bg-neutral-50/70 sm:p-6">
                     <span className={`absolute left-5 top-5 h-2 w-2 rounded-full ${accent}`} />
                     <p className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{label}</p>
@@ -504,14 +504,14 @@ export function ReportesView() {
           </section>
 
           <div className="grid gap-4 sm:grid-cols-3">
-            {[['Proveedores', data.totales.pagosProveedores, 'bg-rose-500'], ['Utileros', data.totales.utileros, 'bg-amber-500'], ['Caja chica', data.totales.cajaChica, 'bg-slate-500']].map(([label, value, color]) => (
+            {[['Proveedores', data.totales.pagosProveedores, 'bg-neutral-400'], ['Utileros', data.totales.utileros, 'bg-neutral-400'], ['Caja chica', data.totales.cajaChica, 'bg-neutral-400']].map(([label, value, color]) => (
               <div key={String(label)} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">{label}</p><span className={`h-2.5 w-2.5 rounded-full ${color}`} /></div><p className="mt-4 text-2xl font-semibold tracking-tight tabular-nums text-neutral-950">{formatMoney(Number(value))}</p><p className="mt-1 text-xs text-neutral-400">{data.totales.egresos > 0 ? `${((Number(value) / data.totales.egresos) * 100).toFixed(1)}% de los egresos` : "Sin participación"}</p></div>
             ))}
           </div>
 
           <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             <div className="flex flex-col gap-4 border-b border-neutral-100 px-5 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
-              <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-600">Evolución mensual</p><h3 className="mt-1 text-lg font-semibold tracking-tight text-neutral-950">Ingresos, egresos y balance</h3><p className="mt-1 text-xs text-neutral-500">Desplazate horizontalmente cuando el historial incluya muchos meses.</p></div>
+              <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Evolución mensual</p><h3 className="mt-1 text-lg font-semibold tracking-tight text-neutral-950">Ingresos, egresos y balance</h3><p className="mt-1 text-xs text-neutral-500">Desplazate horizontalmente cuando el historial incluya muchos meses.</p></div>
               {mejorMes && peorMes ? <div className="flex gap-4 text-xs"><div><span className="text-neutral-400">Mejor mes</span><p className="mt-1 font-semibold text-emerald-700">{mejorMes.label} · {formatMoney(mejorMes.balance)}</p></div><div><span className="text-neutral-400">Menor resultado</span><p className="mt-1 font-semibold text-neutral-700">{peorMes.label} · {formatMoney(peorMes.balance)}</p></div></div> : null}
             </div>
             <div className="overflow-x-auto p-4 sm:p-6">

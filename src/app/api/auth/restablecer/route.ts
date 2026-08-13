@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         data: { usedAt: new Date() },
       });
       if (claim.count !== 1) throw new Error("TOKEN_CONSUMIDO");
-      await tx.user.update({
+      await tx.eventosUsuario.update({
         where: { id: result.userId },
         data: { password: hashedPassword },
       });

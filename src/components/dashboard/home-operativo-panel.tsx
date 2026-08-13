@@ -13,10 +13,10 @@ const ESTADO_LABEL: Record<string, string> = {
 
 const ESTADO_STYLE: Record<string, string> = {
   BORRADOR: "bg-neutral-100 text-neutral-600",
-  CONFIRMADO: "bg-amber-100 text-amber-800",
-  EN_CURSO: "bg-sky-100 text-sky-800",
-  FINALIZADO: "bg-violet-100 text-violet-800",
-  FACTURADO: "bg-emerald-100 text-emerald-800",
+  CONFIRMADO: "bg-emerald-50 text-emerald-700",
+  EN_CURSO: "bg-neutral-200 text-neutral-800",
+  FINALIZADO: "bg-neutral-100 text-neutral-600",
+  FACTURADO: "bg-neutral-900 text-white",
 };
 
 function fmtMoney(v: number) {
@@ -66,17 +66,9 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
   }
 
   return (
-    <section className="mb-10 rounded-2xl border border-teal-200/70 bg-gradient-to-br from-teal-50/90 via-white to-sky-50/70 shadow-[0_1px_0_rgba(15,118,110,0.06)] overflow-hidden">
-      <div className="relative px-6 sm:px-8 pt-8 pb-6 border-b border-teal-100/80">
-        <div
-          className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-teal-200/25 blur-3xl"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -left-10 top-10 h-40 w-40 rounded-full bg-sky-200/20 blur-2xl"
-          aria-hidden
-        />
-        <p className="relative text-teal-800/80 text-xs font-semibold uppercase tracking-[0.14em]">
+    <section className="mb-10 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+      <div className="relative border-b border-neutral-100 px-6 pb-6 pt-8 sm:px-8">
+        <p className="relative text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
           Tu panel operativo
         </p>
         <h2 className="relative mt-2 text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
@@ -89,19 +81,19 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
       </div>
 
       <div className="px-6 sm:px-8 py-6 flex flex-wrap gap-3">
-        <div className="rounded-xl bg-white/80 border border-teal-100/90 px-4 py-3 shadow-sm min-w-[140px] flex-1">
-          <p className="text-[11px] font-semibold text-teal-700/80 uppercase tracking-wider">Este mes</p>
+        <div className="min-w-[140px] flex-1 rounded-xl border border-neutral-200 bg-neutral-50/50 px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Este mes</p>
           <p className="text-2xl font-bold text-neutral-900 tabular-nums mt-0.5">{insights.eventosMes}</p>
           <p className="text-xs text-neutral-500 mt-1">Eventos con fecha en el mes</p>
         </div>
-        <div className="rounded-xl bg-white/80 border border-teal-100/90 px-4 py-3 shadow-sm min-w-[140px] flex-1">
-          <p className="text-[11px] font-semibold text-teal-700/80 uppercase tracking-wider">En foco</p>
+        <div className="min-w-[140px] flex-1 rounded-xl border border-neutral-200 bg-neutral-50/50 px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">En foco</p>
           <p className="text-2xl font-bold text-neutral-900 tabular-nums mt-0.5">{insights.eventosEnFoco}</p>
           <p className="text-xs text-neutral-500 mt-1">Confirmados o en curso</p>
         </div>
         {verCompromisos && (
-          <div className="rounded-xl bg-white/80 border border-amber-100/90 px-4 py-3 shadow-sm min-w-[140px] flex-1">
-            <p className="text-[11px] font-semibold text-amber-800/90 uppercase tracking-wider">Cotizaciones</p>
+          <div className="min-w-[140px] flex-1 rounded-xl border border-neutral-200 bg-neutral-50/50 px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Cotizaciones</p>
             <p className="text-2xl font-bold text-neutral-900 tabular-nums mt-0.5">
               {insights.compromisosPendientes + insights.compromisosParciales}
             </p>
@@ -112,8 +104,8 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
           </div>
         )}
         {verCaja && (
-          <div className="rounded-xl bg-white/80 border border-emerald-100/90 px-4 py-3 shadow-sm min-w-[140px] flex-1">
-            <p className="text-[11px] font-semibold text-emerald-800/90 uppercase tracking-wider">Caja chica</p>
+          <div className="min-w-[140px] flex-1 rounded-xl border border-neutral-200 bg-neutral-50/50 px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Caja chica</p>
             <p className="text-2xl font-bold text-neutral-900 tabular-nums mt-0.5">
               {insights.cajaMovimientosUltimos7Dias}
             </p>
@@ -121,8 +113,8 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
           </div>
         )}
         {verUtileros && (
-          <div className="rounded-xl bg-white/80 border border-violet-100/90 px-4 py-3 shadow-sm min-w-[140px] flex-1">
-            <p className="text-[11px] font-semibold text-violet-800/90 uppercase tracking-wider">Utileros</p>
+          <div className="min-w-[140px] flex-1 rounded-xl border border-neutral-200 bg-neutral-50/50 px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Utileros</p>
             <p className="text-2xl font-bold text-neutral-900 tabular-nums mt-0.5">
               {insights.tareasUtilerosProximas}
             </p>
@@ -133,10 +125,10 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
 
       {bullets.length > 0 && (
         <div className="px-6 sm:px-8 pb-2">
-          <ul className="rounded-xl bg-teal-900/[0.04] border border-teal-200/50 px-4 py-3 space-y-2">
+          <ul className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50/60 px-4 py-3">
             {bullets.map((b, i) => (
               <li key={i} className="flex gap-2 text-sm text-neutral-700 leading-snug">
-                <span className="text-teal-600 font-bold shrink-0 mt-0.5">→</span>
+                <span className="mt-0.5 shrink-0 font-bold text-neutral-400">→</span>
                 <span>{b}</span>
               </li>
             ))}
@@ -150,7 +142,7 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
             <h3 className="text-sm font-semibold text-neutral-900">Próximos en el calendario</h3>
             <Link
               href="/eventos"
-              className="text-xs font-medium text-teal-700 hover:text-teal-900 transition-colors"
+              className="text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-900"
             >
               Todos los eventos →
             </Link>
@@ -165,10 +157,10 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
                 <li key={e.id}>
                   <Link
                     href={`/eventos/${e.id}`}
-                    className="flex items-start justify-between gap-3 rounded-xl border border-neutral-200/80 bg-white/90 px-4 py-3 shadow-sm hover:border-teal-300/80 hover:shadow transition-all group"
+                    className="group flex items-start justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 transition-all hover:border-neutral-300 hover:shadow-sm"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-neutral-900 group-hover:text-teal-900 truncate">
+                      <p className="truncate text-sm font-semibold text-neutral-900">
                         {e.nombre}
                       </p>
                       <p className="text-xs text-neutral-500 mt-0.5 truncate">{e.cliente}</p>
@@ -203,7 +195,7 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
                 : "Tu próximo paso"}
           </h3>
           {!verCaja && verUtileros && (
-            <p className="text-sm text-neutral-600 leading-relaxed rounded-xl border border-violet-100 bg-violet-50/40 px-4 py-4">
+            <p className="rounded-xl border border-neutral-200 bg-neutral-50/60 px-4 py-4 text-sm leading-relaxed text-neutral-600">
               Tenés <strong>{insights.tareasUtilerosProximas}</strong> tarea
               {insights.tareasUtilerosProximas === 1 ? "" : "s"} cargada
               {insights.tareasUtilerosProximas === 1 ? "" : "s"} en eventos de las próximas semanas. Abrí cada evento
@@ -212,7 +204,7 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
           )}
           {!verCaja && !verUtileros && (
             <p className="text-sm text-neutral-600 leading-relaxed rounded-xl border border-neutral-200 bg-white/60 px-4 py-4">
-              Entrá a <Link href="/eventos" className="font-semibold text-teal-700 hover:underline">Eventos</Link> para
+              Entrá a <Link href="/eventos" className="font-semibold text-neutral-900 hover:underline">Eventos</Link> para
               ver el detalle de cada fecha y cargar la información que te corresponde.
             </p>
           )}
@@ -228,11 +220,11 @@ export function HomeOperativoPanel({ firstName, insights, permisos }: Props) {
                   <li key={c.id}>
                     <Link
                       href={`/eventos/${c.eventoId}`}
-                      className="block rounded-xl border border-neutral-200/80 bg-white/90 px-4 py-3 shadow-sm hover:border-emerald-300/70 transition-all"
+                      className="block rounded-xl border border-neutral-200 bg-white px-4 py-3 transition-all hover:border-neutral-300 hover:shadow-sm"
                     >
                       <div className="flex justify-between items-start gap-2">
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-emerald-800 truncate">{c.eventoNombre}</p>
+                          <p className="truncate text-xs font-medium text-neutral-800">{c.eventoNombre}</p>
                           <span
                             className={`inline-block mt-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
                               ing ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"

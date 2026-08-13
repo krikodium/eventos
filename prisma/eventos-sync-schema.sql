@@ -12,8 +12,8 @@
 -- repetir: usa IF NOT EXISTS / IF NOT EXISTS columnas).
 -- =============================================================================
 
--- --- User (compartida con Shop): permisos JSON del módulo Eventos ---
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "eventosPermisos" JSONB;
+-- --- Autenticación propia de Eventos ---
+-- Ejecutar antes prisma/eventos-migration-usuarios-independientes.sql.
 
 -- --- Evento: detalle comercial y caja ---
 ALTER TABLE "Evento" ADD COLUMN IF NOT EXISTS "organizadora" TEXT;

@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       if (claim.count !== 1) {
         throw new Error("INVITACION_YA_USADA");
       }
-      const activation = await tx.user.updateMany({
+      const activation = await tx.eventosUsuario.updateMany({
         where: { id: result.userId, password: null },
         data: { password: hashedPassword, emailVerified: new Date() },
       });

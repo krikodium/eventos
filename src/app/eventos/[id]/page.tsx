@@ -68,11 +68,11 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
   };
 
   const kpiAccent: Record<string, { tint: string; chip: string; bar: string }> = {
-    emerald: { tint: "from-white to-emerald-50/70", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-300 to-emerald-500" },
-    orange: { tint: "from-white to-orange-50/70", chip: "bg-orange-50 text-orange-700", bar: "from-orange-300 to-orange-500" },
-    violet: { tint: "from-white to-violet-50/70", chip: "bg-violet-50 text-violet-700", bar: "from-violet-300 to-violet-500" },
-    amber: { tint: "from-white to-amber-50/70", chip: "bg-amber-50 text-amber-700", bar: "from-amber-300 to-amber-500" },
-    rose: { tint: "from-white to-rose-50/70", chip: "bg-rose-50 text-rose-700", bar: "from-rose-300 to-rose-500" },
+    emerald: { tint: "from-white to-neutral-50/60", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-400 to-emerald-500" },
+    orange: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
+    violet: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
+    amber: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
+    rose: { tint: "from-white to-neutral-50/60", chip: "bg-rose-50 text-rose-700", bar: "from-rose-400 to-rose-500" },
   };
 
   const kpiEvento: {
@@ -197,16 +197,16 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
                     </div>
                   );
                 })}
-                <div className={`group relative overflow-hidden rounded-2xl border p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-5 col-span-2 lg:col-span-1 ${balance >= 0 ? "border-emerald-100 bg-gradient-to-br from-white to-emerald-50" : "border-rose-100 bg-gradient-to-br from-white to-rose-50"}`}>
+                <div className="group relative col-span-2 overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50/60 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-5 lg:col-span-1">
                   <div className="flex items-start justify-between gap-2">
-                    <p className={`text-[11px] font-semibold uppercase tracking-wider ${balance >= 0 ? "text-emerald-700" : "text-rose-700"}`}>Balance</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Balance</p>
                     <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${balance >= 0 ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 19V5m0 14h16M8 15l3-3 3 2 5-7" />
                       </svg>
                     </span>
                   </div>
-                  <p className={`mt-3 text-xl font-bold tabular-nums sm:text-2xl ${balance >= 0 ? "text-emerald-900" : "text-rose-800"}`}>
+                  <p className="mt-3 text-xl font-bold tabular-nums text-neutral-900 sm:text-2xl">
                     {balance < 0 ? "-$" : "$"}{Math.abs(balance).toLocaleString("es-AR")}
                   </p>
                   <div className={`mt-3 h-1 w-full rounded-full bg-gradient-to-r opacity-70 transition-opacity group-hover:opacity-100 ${balance >= 0 ? "from-emerald-300 to-emerald-500" : "from-rose-300 to-rose-500"}`} />

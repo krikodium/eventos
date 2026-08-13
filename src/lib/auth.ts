@@ -9,7 +9,7 @@ import { resolvePermisos, type EventosPermisos } from "./permisos";
 async function fetchEventosPermisosRaw(userId: string): Promise<Prisma.JsonValue | null> {
   try {
     const rows = await prisma.$queryRaw<{ eventosPermisos: Prisma.JsonValue | null }[]>(
-      Prisma.sql`SELECT "eventosPermisos" FROM "User" WHERE "id" = ${userId} LIMIT 1`
+      Prisma.sql`SELECT "eventosPermisos" FROM "EventosUsuario" WHERE "id" = ${userId} LIMIT 1`
     );
     return rows[0]?.eventosPermisos ?? null;
   } catch {
@@ -34,7 +34,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const password = String(credentials.password);
         if (!email || !password) return null;
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.eventosUsuario.findUnique({
           where: { email },
           select: {
             id: true,
@@ -83,7 +83,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.id as string;
         session.user.email = (token.email as string) ?? "";
         session.user.name = (token.name as string) ?? token.email ?? "";
-        session.user.role = String(token.role ?? "VENDEDOR");
+        session.user.role = String(token.role ?? "EMPLEADO");
         const fromToken = token.permisos as EventosPermisos | undefined;
         session.user.permisos = fromToken ?? resolvePermisos(session.user.role, null);
       }
