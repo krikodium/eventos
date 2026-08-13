@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { LogoMark } from "@/components/ui/logo";
 
 type AuthShellProps = {
   eyebrow: string;
@@ -25,10 +26,10 @@ export function AuthShell({
         <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-accent-500/15 blur-3xl" />
         <div className="absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-neutral-500/10 blur-3xl" />
         <div className="relative flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-lg font-black text-neutral-950 shadow-xl shadow-white/10">HC</span>
+          <LogoMark className="h-11 w-11 text-white" />
           <div>
-            <p className="text-sm font-semibold">Eventos HC</p>
-            <p className="text-xs text-neutral-500">Gestión integral</p>
+            <p className="text-sm font-semibold tracking-[0.18em]">CARADONTI</p>
+            <p className="text-xs text-neutral-500">Gestión de eventos</p>
           </div>
         </div>
         <div className="relative max-w-xl">
@@ -50,8 +51,8 @@ export function AuthShell({
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-neutral-900 via-neutral-600 to-neutral-300 lg:hidden" />
         <div className="w-full max-w-md">
           <div className="mb-6 flex items-center gap-3 lg:hidden">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-950 text-sm font-black text-white">HC</span>
-            <div><p className="text-sm font-semibold text-neutral-950">Eventos HC</p><p className="text-xs text-neutral-500">Gestión integral</p></div>
+            <LogoMark className="h-10 w-10 text-neutral-950" />
+            <div><p className="text-sm font-semibold tracking-[0.18em] text-neutral-950">CARADONTI</p><p className="text-xs text-neutral-500">Gestión de eventos</p></div>
           </div>
           <div className="rounded-3xl border border-border-subtle bg-surface p-7 shadow-2xl shadow-neutral-300/40 sm:p-9">
             <div className="mb-8">
@@ -61,7 +62,7 @@ export function AuthShell({
             </div>
             {children}
           </div>
-          <p className="mt-5 text-center text-xs text-neutral-400">Eventos HC · Sistema interno de gestión</p>
+          <p className="mt-5 text-center text-xs text-neutral-400">Caradonti · Sistema interno de gestión</p>
         </div>
       </section>
     </main>

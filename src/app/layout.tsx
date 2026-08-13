@@ -10,8 +10,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema de Gestión de Eventos",
+  title: "Caradonti · Gestión de eventos",
   description: "Gestión de eventos privados y corporativos",
+  icons: {
+    icon: [{ url: "/icono.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/logo-caradonti-fondo.png" }],
+  },
 };
 
 export default function RootLayout({

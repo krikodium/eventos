@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { LogoMark } from "@/components/ui/logo";
 
 type IconName = "inicio" | "eventos" | "presupuestos" | "proveedores" | "utileros" | "reportes" | "usuarios";
 
@@ -41,8 +42,8 @@ export function Navbar() {
     <>
       <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border-subtle bg-surface-sidebar text-neutral-800 lg:flex">
         <div className="flex h-20 items-center gap-3 border-b border-neutral-100 px-5">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-300 bg-white text-lg font-light tracking-tight text-neutral-900">HC</span>
-          <div><p className="text-sm font-semibold tracking-tight text-neutral-900">Eventos HC</p><p className="mt-0.5 text-[11px] text-neutral-500">Gestión integral</p></div>
+          <LogoMark className="h-9 w-9 shrink-0 text-neutral-900" />
+          <div><p className="text-sm font-semibold tracking-[0.16em] text-neutral-900">CARADONTI</p><p className="mt-0.5 text-[11px] text-neutral-500">Gestión de eventos</p></div>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-5">
@@ -77,7 +78,7 @@ export function Navbar() {
 
       <nav className="sticky top-0 z-30 w-full border-b border-border-subtle bg-surface-muted/95 backdrop-blur lg:hidden">
         <div className="flex h-14 items-center gap-3 px-4">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-light tracking-tight text-neutral-900">HC</span>
+          <LogoMark className="h-7 w-7 shrink-0 text-neutral-900" />
           <div className="min-w-0 flex-1 overflow-x-auto">
             <div className="flex w-max items-center gap-1">
               <Link href="/" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Inicio</Link>

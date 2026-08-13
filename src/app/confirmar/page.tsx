@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { PasswordField } from "@/components/auth/password-field";
+import { LogoMark } from "@/components/ui/logo";
 
 function ConfirmarForm() {
   const router = useRouter();
@@ -84,8 +85,8 @@ function ConfirmarForm() {
       <section className="relative hidden overflow-hidden bg-neutral-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-accent-500/15 blur-3xl" />
         <div className="relative flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-lg font-black text-neutral-950">HC</span>
-          <div><p className="text-sm font-semibold">Eventos HC</p><p className="text-xs text-neutral-500">Gestión integral</p></div>
+          <LogoMark className="h-11 w-11 text-white" />
+          <div><p className="text-sm font-semibold tracking-[0.18em]">CARADONTI</p><p className="text-xs text-neutral-500">Gestión de eventos</p></div>
         </div>
         <div className="relative max-w-lg">
           <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Activá tu cuenta</p>
