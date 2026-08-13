@@ -129,17 +129,33 @@ export function PresupuestosLanding({
                   <th>Nº</th>
                   <th>Creado</th>
                   <th className="text-right">Total</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {libres.map((p) => (
                   <tr key={p.id}>
-                    <td className="font-medium text-neutral-900">{p.evento}</td>
+                    <td className="font-medium text-neutral-900">
+                      <Link
+                        href={`/presupuestos/nuevo?presupuestoId=${p.id}`}
+                        className="hover:underline"
+                      >
+                        {p.evento}
+                      </Link>
+                    </td>
                     <td>{p.cliente}</td>
                     <td>{p.presupuestoNro ?? "—"}</td>
                     <td>{fechaCorta(p.createdAt)}</td>
                     <td className="text-right font-semibold tabular-nums text-neutral-900">
                       {money(p.total)}
+                    </td>
+                    <td className="text-right">
+                      <Link
+                        href={`/presupuestos/nuevo?presupuestoId=${p.id}`}
+                        className="whitespace-nowrap text-xs font-semibold text-accent-600 hover:text-accent-900"
+                      >
+                        Abrir →
+                      </Link>
                     </td>
                   </tr>
                 ))}

@@ -119,7 +119,14 @@ export type EventoDePresupuesto = {
   formaPagoAcordada: string | null;
 };
 
-export function PresupuestosGenerator({ evento }: { evento?: EventoDePresupuesto }) {
+export function PresupuestosGenerator({
+  evento,
+  initialPresupuestoId,
+}: {
+  evento?: EventoDePresupuesto;
+  /** Presupuesto a abrir automáticamente al entrar (?presupuestoId=). */
+  initialPresupuestoId?: string;
+}) {
   const router = useRouter();
   // El listado de guardados se acota al evento (o a los libres si no hay evento).
   const listaUrl = `/api/presupuestos?eventoId=${evento?.id ?? "libres"}`;
@@ -164,10 +171,18 @@ export function PresupuestosGenerator({ evento }: { evento?: EventoDePresupuesto
           setMensaje(data?.error ?? "No se pudieron cargar los presupuestos.");
           return;
         }
-        setPresupuestos(Array.isArray(data) ? data : []);
+        const lista: PresupuestoGuardado[] = Array.isArray(data) ? data : [];
+        setPresupuestos(lista);
+        // Si se entró con ?presupuestoId=, lo abrimos apenas llega la lista.
+        if (initialPresupuestoId) {
+          const p = lista.find((x) => x.id === initialPresupuestoId);
+          if (p) aplicarPresupuesto(p);
+        }
       })
       .catch(console.error);
-  }, [listaUrl]);
+    // aplicarPresupuesto solo usa setters, estables entre renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listaUrl, initialPresupuestoId]);
 
   function normalizarItems(raw: unknown): Item[] {
     const empty: Item = { id: crypto.randomUUID(), concepto: "", cantidad: 1, precioInterno: 0, precioCliente: 0 };
@@ -189,9 +204,13 @@ export function PresupuestosGenerator({ evento }: { evento?: EventoDePresupuesto
   }
 
   function cargarPresupuesto(id: string) {
-    setPresupuestoId(id);
     const p = presupuestos.find((x) => x.id === id);
     if (!p) return;
+    aplicarPresupuesto(p);
+  }
+
+  function aplicarPresupuesto(p: PresupuestoGuardado) {
+    setPresupuestoId(p.id);
     setForm({
       empresa: p.empresa ?? "",
       cliente: p.cliente,

@@ -9,7 +9,7 @@ import { PresupuestosGenerator } from "@/components/presupuestos/presupuestos-ge
 export default async function NuevoPresupuestoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ eventoId?: string }>;
+  searchParams: Promise<{ eventoId?: string; presupuestoId?: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.permisos) redirect("/login");
@@ -18,7 +18,7 @@ export default async function NuevoPresupuestoPage({
     redirect("/eventos");
   }
 
-  const { eventoId } = await searchParams;
+  const { eventoId, presupuestoId } = await searchParams;
   const evento = eventoId
     ? await prisma.evento.findUnique({ where: { id: eventoId } }).catch(() => null)
     : null;
@@ -49,6 +49,7 @@ export default async function NuevoPresupuestoPage({
         />
 
         <PresupuestosGenerator
+          initialPresupuestoId={presupuestoId}
           evento={
             evento
               ? {
