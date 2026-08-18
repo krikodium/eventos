@@ -8,6 +8,8 @@ import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
 import { HomeOperativoPanel } from "@/components/dashboard/home-operativo-panel";
 import { sumMovimientosProveedorGlobalRaw, topProveedoresMovimientosRaw } from "@/lib/pago-proveedor-raw";
 import { fetchHomeOperativoInsights } from "@/lib/home-operativo-insights";
+import { fetchCarteraEventos, type EventoCartera } from "@/lib/cartera-eventos";
+import { CarteraEventos } from "@/components/dashboard/cartera-eventos";
 import { CAJA_SENTIDO_EGRESO } from "@/lib/caja-chica-pesos";
 import { resolvePermisos } from "@/lib/permisos";
 
@@ -60,7 +62,6 @@ export default async function HomePage() {
     PARTICULAR: "Particular",
   };
 
-  let eventosCount = 0;
   let eventosMes = 0;
   let eventosRecientes: EventoReciente[] = [];
   let ingresos = 0;
@@ -73,6 +74,7 @@ export default async function HomePage() {
   let proximoEvento: { id: string; nombre: string; cliente: string; fecha: Date; estado: string } | null = null;
   let eventosProximos = 0;
   let eventosActivos = 0;
+  let cartera: EventoCartera[] = [];
   let tablesReady = false;
   let homeLoadError: string | null = null;
 
@@ -85,7 +87,6 @@ export default async function HomePage() {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     const [
-      count,
       mes,
       recientes,
       totalIngresos,
@@ -97,7 +98,6 @@ export default async function HomePage() {
       proximosCount,
       activosCount,
     ] = await Promise.all([
-      prisma.evento.count(),
       prisma.evento.count({
         where: { fecha: { gte: startOfMonth, lte: endOfMonth } },
       }),
@@ -136,7 +136,6 @@ export default async function HomePage() {
       }
     }
 
-    eventosCount = count;
     eventosMes = mes;
     eventosRecientes = recientes;
     ingresos = totalIngresos._sum.monto ?? 0;
@@ -182,6 +181,14 @@ export default async function HomePage() {
     console.error("[HomePage] Error al cargar datos desde la BD:", e);
   }
 
+  if (tablesReady && isAdmin) {
+    try {
+      cartera = await fetchCarteraEventos();
+    } catch (e) {
+      console.error("[HomePage] Error al cargar la cartera de eventos:", e);
+    }
+  }
+
   const insightsOperativo =
     tablesReady && !isAdmin ? await fetchHomeOperativoInsights() : null;
 
@@ -214,66 +221,6 @@ export default async function HomePage() {
   const proveedorMax = Math.max(...proveedoresConNombre.map((p) => p.monto), 1);
   const margenPct = ingresos > 0 ? Math.round((balance / ingresos) * 100) : 0;
   const margenBarWidth = Math.max(0, Math.min(100, margenPct));
-
-  const accentStyles: Record<string, { tint: string; chip: string; bar: string }> = {
-    slate: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
-    teal: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
-    emerald: { tint: "from-white to-neutral-50/60", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-400 to-emerald-500" },
-    orange: { tint: "from-white to-neutral-50/60", chip: "bg-rose-50 text-rose-700", bar: "from-rose-300 to-rose-400" },
-    violet: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
-    rose: { tint: "from-white to-neutral-50/60", chip: "bg-rose-50 text-rose-700", bar: "from-rose-400 to-rose-500" },
-  };
-
-  const kpiCards: {
-    label: string;
-    value: string | number;
-    sub: string;
-    accent: keyof typeof accentStyles;
-    icon: React.ReactNode;
-  }[] = [
-    {
-      label: "Total eventos",
-      value: eventosCount,
-      sub: "Base completa",
-      accent: "slate",
-      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />,
-    },
-    {
-      label: "Este mes",
-      value: eventosMes,
-      sub: "Calendario actual",
-      accent: "teal",
-      icon: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 6v6l4 2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></>,
-    },
-    {
-      label: "Ingresos",
-      value: fmtMoney(ingresos),
-      sub: "Cobros registrados",
-      accent: "emerald",
-      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="m7 11 5-5 5 5M12 6v12" />,
-    },
-    {
-      label: "Egresos",
-      value: fmtMoney(egresos),
-      sub: "Pagos y gastos",
-      accent: "orange",
-      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="m7 13 5 5 5-5M12 6v12" />,
-    },
-    {
-      label: "Caja chica",
-      value: fmtMoney(cajaChica),
-      sub: "Egresos menores",
-      accent: "violet",
-      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12H3m18 0v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6m18 0-2.5-6h-13L3 12" />,
-    },
-    {
-      label: "Balance",
-      value: `${balance >= 0 ? "+" : ""}${fmtMoney(balance)}`,
-      sub: "Ingresos menos egresos",
-      accent: balance >= 0 ? "emerald" : "rose",
-      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 19V5m0 14h16M8 15l3-3 3 2 5-7" />,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -451,30 +398,9 @@ export default async function HomePage() {
 
         {isAdmin && (
           <>
-            <section className="mb-8 grid grid-cols-2 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_5px_18px_rgba(36,35,32,0.035)] lg:grid-cols-6 lg:divide-x lg:divide-neutral-200">
-              {kpiCards.map((card) => {
-                const a = accentStyles[card.accent];
-                return (
-                  <div
-                    key={card.label}
-                    className="group border-b border-neutral-200 p-4 transition-colors odd:border-r hover:bg-neutral-50 lg:border-b-0 lg:border-r-0"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-neutral-500 text-[11px] font-semibold uppercase tracking-wider">
-                        {card.label}
-                      </p>
-                      <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${a.chip} transition-transform group-hover:scale-110`}>
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          {card.icon}
-                        </svg>
-                      </span>
-                    </div>
-                    <p className="mt-3 text-2xl font-semibold text-neutral-900 tabular-nums">{card.value}</p>
-                    <p className="text-[11px] text-neutral-400 mt-1">{card.sub}</p>
-                  </div>
-                );
-              })}
-            </section>
+            <div className="mb-8">
+              <CarteraEventos eventos={cartera} />
+            </div>
 
             <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 mb-8">
               <section className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm">
@@ -554,6 +480,7 @@ export default async function HomePage() {
           </>
         )}
 
+        {!isAdmin && (
         <section className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm">
           <div className="px-5 py-4 border-b border-neutral-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <div>
@@ -639,6 +566,7 @@ export default async function HomePage() {
             )}
           </div>
         </section>
+        )}
       </main>
     </div>
   );
