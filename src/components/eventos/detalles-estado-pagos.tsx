@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  etiquetasIngresos,
+  normalizarTipoIngreso,
+  type TipoIngreso,
+} from "@/lib/ingresos";
+
 type Evento = {
   nombre: string;
   fecha: Date;
@@ -17,6 +23,7 @@ type Evento = {
 };
 
 type Ingreso = {
+  id: string;
   monto: number;
   tipo: string;
   concepto: string | null;
@@ -63,13 +70,21 @@ function CardHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: stri
 }
 
 export function DetallesEstadoPagos({ evento, ingresos }: Props) {
-  const anticipo = ingresos.filter((i) => i.tipo === "ANTICIPO").reduce((s, i) => s + i.monto, 0);
-  const pagosParciales = ingresos
-    .filter((i) => i.tipo === "PAGO_PARCIAL")
-    .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
-  const facturacion = ingresos.filter((i) => i.tipo === "FACTURACION").reduce((s, i) => s + i.monto, 0);
+  // El desglose sigue el orden real de cobro: seña, anticipo y luego los pagos
+  // numerados. El total suma TODOS los ingresos, sin depender del tipo: antes,
+  // un tipo no contemplado quedaba fuera del total cobrado.
+  const etiquetaIngreso = etiquetasIngresos(ingresos);
+  const porTipo = (t: TipoIngreso) =>
+    ingresos.filter((i) => normalizarTipoIngreso(i.tipo) === t);
+  const suma = (items: Ingreso[]) => items.reduce((s, i) => s + i.monto, 0);
 
-  const totalCobrado = anticipo + pagosParciales.reduce((s, p) => s + p.monto, 0) + facturacion;
+  const senas = porTipo("SENA");
+  const anticipos = porTipo("ANTICIPO");
+  const pagos = porTipo("PAGO").sort(
+    (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
+  );
+
+  const totalCobrado = suma(ingresos);
   const presupuesto = evento.presupuestoTotal ?? 0;
   const saldoAPagar = Math.max(0, presupuesto - totalCobrado);
   const pctCobrado = presupuesto > 0 ? Math.min(100, Math.round((totalCobrado / presupuesto) * 100)) : 0;
@@ -133,17 +148,14 @@ export function DetallesEstadoPagos({ evento, ingresos }: Props) {
 
         {/* Desglose de cobros */}
         <dl className="divide-y divide-neutral-100">
-          <Row label="Anticipo" value={anticipo > 0 ? money(anticipo) : null} isMoneda />
-          {pagosParciales.map((p, i) => (
-            <Row key={i} label={`${i + 2}° Pago`} value={money(p.monto)} isMoneda />
-          ))}
-          {pagosParciales.length === 0 && (
-            <>
-              <Row label="2° Pago" value={null} />
-              <Row label="3° Pago" value={null} />
-            </>
+          {senas.length > 0 && <Row label="Seña" value={money(suma(senas))} isMoneda />}
+          {anticipos.length > 0 && (
+            <Row label="Anticipo" value={money(suma(anticipos))} isMoneda />
           )}
-          {facturacion > 0 && <Row label="Facturación" value={money(facturacion)} isMoneda />}
+          {pagos.map((p) => (
+            <Row key={p.id} label={etiquetaIngreso.get(p.id) ?? "Pago"} value={money(p.monto)} isMoneda />
+          ))}
+          {ingresos.length === 0 && <Row label="Cobros" value={null} />}
         </dl>
       </div>
     </div>

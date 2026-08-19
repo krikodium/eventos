@@ -6,6 +6,7 @@ import { PagosProveedores } from "./pagos-proveedores";
 import { PlanillaUtileros } from "./planilla-utileros";
 import { CajaChicaForm } from "./caja-chica-form";
 import { IngresoForm } from "./ingreso-form";
+import { etiquetasIngresos, proximoNumeroDePago } from "@/lib/ingresos";
 import { CompromisosProveedorEmpleado, type CompromisoResumen } from "./compromisos-proveedor-empleado";
 import type { EventosPermisos } from "@/lib/permisos";
 import { esMovimientoPago } from "@/lib/pagos-proveedor-utils";
@@ -154,11 +155,8 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
     TRANSF_ARS: "Transf. ARS",
     TRANSF_USD: "Transf. USD",
   };
-  const tiposIngreso: Record<string, string> = {
-    FACTURACION: "Facturación",
-    ANTICIPO: "Anticipo",
-    PAGO_PARCIAL: "Pago parcial",
-  };
+  // Seña/anticipo van sin número; los pagos se numeran por fecha.
+  const etiquetaIngreso = etiquetasIngresos(evento.ingresos);
 
   const [verEnPesos, setVerEnPesos] = useState(false);
   const tc = evento.tipoCambioUsd ?? 0;
@@ -308,7 +306,12 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
 
         {tabActivo === "ingresos" && verIngresos && (
           <div>
-            {isAdmin && <IngresoForm eventoId={evento.id} />}
+            {isAdmin && (
+              <IngresoForm
+                eventoId={evento.id}
+                proximoPago={proximoNumeroDePago(evento.ingresos)}
+              />
+            )}
             <div className="mt-6 space-y-2">
               {evento.ingresos.map((i) => (
                 <div
@@ -317,7 +320,7 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
                 >
                   <span className="absolute inset-y-0 left-0 w-1 bg-emerald-500" />
                   <div className="pl-2.5">
-                    <span className="font-semibold text-neutral-900">{tiposIngreso[i.tipo] ?? i.tipo}</span>
+                    <span className="font-semibold text-neutral-900">{etiquetaIngreso.get(i.id) ?? i.tipo}</span>
                     {i.concepto && <p className="mt-0.5 text-sm text-neutral-500">{i.concepto}</p>}
                     {i.numeroFactura && (
                       <p className="mt-0.5 text-xs text-neutral-500">Factura: {i.numeroFactura}</p>

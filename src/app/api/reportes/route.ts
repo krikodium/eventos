@@ -2,11 +2,21 @@ import { auth } from "@/lib/auth";
 import { cajaSentidoEsEgreso } from "@/lib/caja-chica-pesos";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { idsPagosMovimientoEnRangoRaw } from "@/lib/pago-proveedor-raw";
+import { puedeVerFinanzas } from "@/lib/acceso-finanzas";
+import { ROL_MOVIMIENTO } from "@/lib/pagos-proveedor-utils";
+import {
+  restarImportesArsSeguro,
+  sumarImportesArsSeguro,
+} from "@/lib/cartera-eventos";
+import {
+  convertirFilasMonedaReporte,
+  filtrarEventosComparables,
+  idsEventosSinTipoCambio,
+} from "@/lib/reportes-financieros";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (!session?.user || !puedeVerFinanzas(session.user)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
@@ -20,7 +30,10 @@ export async function GET(req: NextRequest) {
     const [primerIngreso, primerPago, primeraCaja, primerEvento, primerDiaUtilero] =
       await Promise.all([
         prisma.ingreso.aggregate({ _min: { fecha: true } }),
-        prisma.pagoProveedor.aggregate({ _min: { fecha: true } }),
+        prisma.pagoProveedor.aggregate({
+          where: { rol: ROL_MOVIMIENTO },
+          _min: { fecha: true },
+        }),
         prisma.cajaChicaEvento.aggregate({ _min: { fecha: true } }),
         prisma.evento.aggregate({ _min: { fecha: true } }),
         prisma.diaUtilero.aggregate({ _min: { createdAt: true } }),
@@ -53,29 +66,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "El rango de fechas no es válido" }, { status: 400 });
   }
 
-  const idsMov = await idsPagosMovimientoEnRangoRaw(fechaDesde, fechaHasta);
-  const pagos =
-    idsMov && idsMov.length > 0
-      ? await prisma.pagoProveedor.findMany({
-          where: { id: { in: idsMov } },
-          include: {
-            proveedor: true,
-            rubro: true,
-            evento: true,
-          },
-        })
-      : idsMov === null
-        ? await prisma.pagoProveedor.findMany({
-            where: {
-              fecha: { gte: fechaDesde, lte: fechaHasta },
-            },
-            include: {
-              proveedor: true,
-              rubro: true,
-              evento: true,
-            },
-          })
-        : [];
+  const pagos = await prisma.pagoProveedor.findMany({
+    where: {
+      fecha: { gte: fechaDesde, lte: fechaHasta },
+      rol: ROL_MOVIMIENTO,
+    },
+    include: {
+      proveedor: true,
+      rubro: true,
+      evento: true,
+    },
+  });
 
   const cajaChica = await prisma.cajaChicaEvento.findMany({
     where: { fecha: { gte: fechaDesde, lte: fechaHasta } },
@@ -106,31 +107,58 @@ export async function GET(req: NextRequest) {
     include: { evento: true },
   });
 
+  const pagosConvertidos = convertirFilasMonedaReporte(pagos);
+  const ingresosConvertidos = convertirFilasMonedaReporte(ingresos);
+  const cajaConvertida = convertirFilasMonedaReporte(cajaChica);
+  const eventosSinTipoCambioIds = idsEventosSinTipoCambio([
+    pagosConvertidos,
+    ingresosConvertidos,
+    cajaConvertida,
+  ]);
+  const pagosComparables = filtrarEventosComparables(pagosConvertidos, eventosSinTipoCambioIds);
+  const ingresosComparables = filtrarEventosComparables(ingresosConvertidos, eventosSinTipoCambioIds);
+  const cajaComparable = filtrarEventosComparables(cajaConvertida, eventosSinTipoCambioIds);
+  const utilerosComparables = filtrarEventosComparables(diasUtileros, eventosSinTipoCambioIds);
+
+  const eventosSinTipoCambio = Array.from(
+    new Map(
+      [...pagosConvertidos, ...ingresosConvertidos, ...cajaConvertida]
+        .filter((fila) => eventosSinTipoCambioIds.has(fila.eventoId))
+        .map((fila) => [
+          fila.eventoId,
+          { id: fila.eventoId, nombre: fila.evento.nombre },
+        ])
+    ).values()
+  );
+
   // Agrupar por rubro
-  const porRubro: Record<string, { total: number; pagos: typeof pagos }> = {};
-  for (const p of pagos) {
+  const porRubro: Record<string, { total: number; cantidad: number }> = {};
+  for (const p of pagosComparables) {
     const key = p.rubro.nombre;
-    if (!porRubro[key]) porRubro[key] = { total: 0, pagos: [] };
-    porRubro[key].total += p.monto;
-    porRubro[key].pagos.push(p);
+    if (!porRubro[key]) porRubro[key] = { total: 0, cantidad: 0 };
+    porRubro[key].total = sumarImportesArsSeguro([porRubro[key].total, p.montoArs]);
+    porRubro[key].cantidad++;
   }
 
   // Agrupar por proveedor
-  const porProveedor: Record<string, { total: number; pagos: typeof pagos }> = {};
-  for (const p of pagos) {
+  const porProveedor: Record<string, { total: number; cantidad: number }> = {};
+  for (const p of pagosComparables) {
     const key = p.proveedor.nombre;
-    if (!porProveedor[key]) porProveedor[key] = { total: 0, pagos: [] };
-    porProveedor[key].total += p.monto;
-    porProveedor[key].pagos.push(p);
+    if (!porProveedor[key]) porProveedor[key] = { total: 0, cantidad: 0 };
+    porProveedor[key].total = sumarImportesArsSeguro([porProveedor[key].total, p.montoArs]);
+    porProveedor[key].cantidad++;
   }
 
-  const totalPagos = pagos.reduce((s, p) => s + p.monto, 0);
-  const totalUtileros = diasUtileros.reduce((s, d) => s + d.monto, 0);
-  const totalCajaChica = cajaChica.reduce(
-    (s, c) => s + (cajaSentidoEsEgreso(c.sentido) ? c.monto : 0),
-    0
+  const totalPagos = sumarImportesArsSeguro(pagosComparables.map((pago) => pago.montoArs));
+  const totalUtileros = sumarImportesArsSeguro(utilerosComparables.map((dia) => dia.monto));
+  const totalCajaChica = sumarImportesArsSeguro(
+    cajaComparable
+      .filter((caja) => cajaSentidoEsEgreso(caja.sentido))
+      .map((caja) => caja.montoArs)
   );
-  const totalIngresos = ingresos.reduce((s, i) => s + i.monto, 0);
+  const totalIngresos = sumarImportesArsSeguro(
+    ingresosComparables.map((ingreso) => ingreso.montoArs)
+  );
 
   const porEventoMap = new Map<
     string,
@@ -172,31 +200,31 @@ export async function GET(req: NextRequest) {
     return created;
   };
 
-  for (const i of ingresos) {
+  for (const i of ingresosComparables) {
     const e = ensureEvento(i.eventoId, i.evento.nombre, i.evento.cliente, i.evento.fecha);
-    e.ingresos += i.monto;
+    e.ingresos = sumarImportesArsSeguro([e.ingresos, i.montoArs]);
   }
-  for (const p of pagos) {
+  for (const p of pagosComparables) {
     const e = ensureEvento(p.eventoId, p.evento.nombre, p.evento.cliente, p.evento.fecha);
-    e.pagosProveedores += p.monto;
+    e.pagosProveedores = sumarImportesArsSeguro([e.pagosProveedores, p.montoArs]);
   }
-  for (const d of diasUtileros) {
+  for (const d of utilerosComparables) {
     const e = ensureEvento(d.eventoId, d.evento.nombre, d.evento.cliente, d.evento.fecha);
-    e.utileros += d.monto;
+    e.utileros = sumarImportesArsSeguro([e.utileros, d.monto]);
   }
-  for (const c of cajaChica) {
+  for (const c of cajaComparable) {
     if (!cajaSentidoEsEgreso(c.sentido)) continue;
     const e = ensureEvento(c.eventoId, c.evento.nombre, c.evento.cliente, c.evento.fecha);
-    e.cajaChica += c.monto;
+    e.cajaChica = sumarImportesArsSeguro([e.cajaChica, c.montoArs]);
   }
 
   const porEvento = Array.from(porEventoMap.values())
     .map((e) => {
-      const egresos = e.pagosProveedores + e.utileros + e.cajaChica;
+      const egresos = sumarImportesArsSeguro([e.pagosProveedores, e.utileros, e.cajaChica]);
       return {
         ...e,
         egresos,
-        balance: e.ingresos - egresos,
+        balance: restarImportesArsSeguro(e.ingresos, egresos),
       };
     })
     .sort((a, b) => b.egresos - a.egresos);
@@ -228,28 +256,28 @@ export async function GET(req: NextRequest) {
     return created;
   };
 
-  for (const ingreso of ingresos) {
+  for (const ingreso of ingresosComparables) {
     const mes = ensureMes(ingreso.fecha);
-    mes.ingresos += ingreso.monto;
+    mes.ingresos = sumarImportesArsSeguro([mes.ingresos, ingreso.montoArs]);
     mes.eventos.add(ingreso.eventoId);
   }
-  for (const pago of pagos) {
+  for (const pago of pagosComparables) {
     const mes = ensureMes(pago.fecha);
-    mes.pagosProveedores += pago.monto;
+    mes.pagosProveedores = sumarImportesArsSeguro([mes.pagosProveedores, pago.montoArs]);
     mes.eventos.add(pago.eventoId);
   }
-  for (const caja of cajaChica) {
+  for (const caja of cajaComparable) {
     if (!cajaSentidoEsEgreso(caja.sentido)) continue;
     const mes = ensureMes(caja.fecha);
-    mes.cajaChica += caja.monto;
+    mes.cajaChica = sumarImportesArsSeguro([mes.cajaChica, caja.montoArs]);
     mes.eventos.add(caja.eventoId);
   }
-  for (const dia of diasUtileros) {
+  for (const dia of utilerosComparables) {
     const fechaEvento = dia.evento.fecha;
     const fechaAtribucion =
       fechaEvento >= fechaDesde && fechaEvento <= fechaHasta ? fechaEvento : dia.createdAt;
     const mes = ensureMes(fechaAtribucion);
-    mes.utileros += dia.monto;
+    mes.utileros = sumarImportesArsSeguro([mes.utileros, dia.monto]);
     mes.eventos.add(dia.eventoId);
   }
 
@@ -263,8 +291,12 @@ export async function GET(req: NextRequest) {
   const historico = Array.from(historicoMap.values())
     .sort((a, b) => a.periodo.localeCompare(b.periodo))
     .map((mes) => {
-      const egresos = mes.pagosProveedores + mes.utileros + mes.cajaChica;
-      const balance = mes.ingresos - egresos;
+      const egresos = sumarImportesArsSeguro([
+        mes.pagosProveedores,
+        mes.utileros,
+        mes.cajaChica,
+      ]);
+      const balance = restarImportesArsSeguro(mes.ingresos, egresos);
       return {
         periodo: mes.periodo,
         ingresos: mes.ingresos,
@@ -286,14 +318,14 @@ export async function GET(req: NextRequest) {
       .map(([nombre, data]) => ({
         rubro: nombre,
         total: data.total,
-        cantidad: data.pagos.length,
+        cantidad: data.cantidad,
       }))
       .sort((a, b) => b.total - a.total),
     porProveedor: Object.entries(porProveedor)
       .map(([nombre, data]) => ({
         proveedor: nombre,
         total: data.total,
-        cantidad: data.pagos.length,
+        cantidad: data.cantidad,
       }))
       .sort((a, b) => b.total - a.total),
     totales: {
@@ -301,10 +333,14 @@ export async function GET(req: NextRequest) {
       utileros: totalUtileros,
       cajaChica: totalCajaChica,
       ingresos: totalIngresos,
-      egresos: totalPagos + totalUtileros + totalCajaChica,
-      balance: totalIngresos - totalPagos - totalUtileros - totalCajaChica,
+      egresos: sumarImportesArsSeguro([totalPagos, totalUtileros, totalCajaChica]),
+      balance: restarImportesArsSeguro(
+        totalIngresos,
+        sumarImportesArsSeguro([totalPagos, totalUtileros, totalCajaChica])
+      ),
     },
     porEvento,
     historico,
+    eventosSinTipoCambio,
   });
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { LogoMark } from "@/components/ui/logo";
+import { puedeVerFinanzas } from "@/lib/acceso-finanzas";
 
 type IconName = "inicio" | "eventos" | "presupuestos" | "proveedores" | "utileros" | "reportes" | "usuarios";
 
@@ -36,6 +37,7 @@ export function Navbar() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN";
   const permisos = session?.user?.permisos;
+  const verFinanzas = puedeVerFinanzas(session?.user);
   const initials = (session?.user?.name || session?.user?.email || "U").split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
   return (
@@ -52,6 +54,7 @@ export function Navbar() {
             <NavLink href="/" label="Inicio" icon="inicio" exact />
             <NavLink href="/eventos" label="Eventos" icon="eventos" />
             {(isAdmin || permisos?.navPresupuestos) ? <NavLink href="/presupuestos" label="Presupuestos" icon="presupuestos" /> : null}
+            {verFinanzas ? <NavLink href="/finanzas" label="Finanzas" icon="reportes" /> : null}
           </div>
           {isAdmin ? <>
             <div className="my-5 border-t border-neutral-100" />
@@ -59,7 +62,6 @@ export function Navbar() {
             <div className="space-y-1">
               <NavLink href="/proveedores" label="Proveedores" icon="proveedores" />
               <NavLink href="/utileros" label="Utileros" icon="utileros" />
-              <NavLink href="/reportes" label="Reportes" icon="reportes" />
               <NavLink href="/usuarios" label="Usuarios" icon="usuarios" />
             </div>
           </> : null}
@@ -84,7 +86,8 @@ export function Navbar() {
               <Link href="/" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Inicio</Link>
               <Link href="/eventos" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Eventos</Link>
               {(isAdmin || permisos?.navPresupuestos) ? <Link href="/presupuestos" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Presupuestos</Link> : null}
-              {isAdmin ? <><Link href="/proveedores" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Proveedores</Link><Link href="/utileros" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Utileros</Link><Link href="/reportes" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Reportes</Link><Link href="/usuarios" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Usuarios</Link></> : null}
+              {verFinanzas ? <Link href="/finanzas" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Finanzas</Link> : null}
+              {isAdmin ? <><Link href="/proveedores" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Proveedores</Link><Link href="/utileros" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Utileros</Link><Link href="/usuarios" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Usuarios</Link></> : null}
             </div>
           </div>
         </div>

@@ -92,6 +92,56 @@ model Presupuesto {
   impuestosPct       Float    @default(0)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+
+  sectores PresupuestoSector[]
+  lineas   PresupuestoLinea[]
+}
+
+/// Sector de un presupuesto. Agrupa líneas y permite armar alternativas.
+model PresupuestoSector {
+  id            String      @id @default(cuid())
+  presupuestoId String
+  presupuesto   Presupuesto @relation(fields: [presupuestoId], references: [id], onDelete: Cascade)
+  nombre        String
+  orden         Int         @default(0)
+  /// null = sector base (siempre suma). Mismo valor = alternativas (elegir una).
+  grupoOpcion   String?
+  /// Alternativa elegida por el cliente dentro de su grupo (a lo sumo una).
+  elegido       Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  lineas PresupuestoLinea[]
+
+  @@index([presupuestoId])
+}
+
+/// Línea de presupuesto: un ítem con su costo (HC) y su precio al cliente.
+model PresupuestoLinea {
+  id              String            @id @default(cuid())
+  presupuestoId   String
+  presupuesto     Presupuesto       @relation(fields: [presupuestoId], references: [id], onDelete: Cascade)
+  sectorId        String
+  sector          PresupuestoSector @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+  orden           Int               @default(0)
+  item            String
+  descripcion     String?
+  cantidad        Float             @default(1)
+  /// Lo que le cuesta a HC (lo que se le paga al proveedor).
+  costoUnitario   Float             @default(0)
+  /// Lo que se le cobra al cliente.
+  precioUnitario  Float             @default(0)
+  moneda          String            @default("ARS") // ARS | USD
+  canalPago       String            @default("EFECTIVO") // EFECTIVO | TRANSFERENCIA | A_DEFINIR
+  proveedorId     String?
+  proveedor       ProveedorEvento?  @relation(fields: [proveedorId], references: [id], onDelete: SetNull)
+  aprobadoCliente Boolean           @default(false)
+  deshabilitado   Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([presupuestoId])
+  @@index([sectorId])
+  @@index([proveedorId])
 }
 
 model Rubro {
@@ -112,7 +162,8 @@ model ProveedorEvento {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  pagos PagoProveedor[]
+  pagos             PagoProveedor[]
+  lineasPresupuesto PresupuestoLinea[]
 
   @@map("ProveedorEvento")
 }
@@ -213,7 +264,7 @@ model Ingreso {
   metodoPago    String   @default("TRANSF_ARS") // EFECTIVO_USD | EFECTIVO_ARS | TRANSF_ARS | TRANSF_USD
   concepto      String?
   fecha         DateTime
-  tipo          String   @default("FACTURACION") // FACTURACION | ANTICIPO | PAGO_PARCIAL
+  tipo          String   @default("PAGO") // SENA | ANTICIPO | PAGO (el número de pago se deriva por fecha)
   numeroFactura String?
   createdAt     DateTime @default(now())
 

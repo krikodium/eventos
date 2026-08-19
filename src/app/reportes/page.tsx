@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { ReportesView } from "@/components/reportes/reportes-view";
 import { PageHeader } from "@/components/layout/page-header";
+import { puedeVerFinanzas } from "@/lib/acceso-finanzas";
 
 export default async function ReportesPage() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") redirect("/");
+  if (!session?.user || !puedeVerFinanzas(session.user)) redirect("/");
 
   return (
     <div className="min-h-screen bg-neutral-50">

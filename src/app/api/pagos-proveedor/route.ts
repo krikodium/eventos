@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ROL_COMPROMISO, ROL_MOVIMIENTO } from "@/lib/pagos-proveedor-utils";
+import { parseMontoPositivo, resolverMetodoPago } from "@/lib/metodos-pago";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -20,6 +21,14 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    const montoValido = parseMontoPositivo(monto);
+    const metodoPagoValido = resolverMetodoPago(metodoPago, "TRANSF_ARS");
+    if (montoValido === null) {
+      return NextResponse.json({ error: "El monto debe ser finito y mayor a cero" }, { status: 400 });
+    }
+    if (metodoPagoValido === null) {
+      return NextResponse.json({ error: "Método de pago inválido" }, { status: 400 });
+    }
 
     const rolIn = rol === ROL_COMPROMISO ? ROL_COMPROMISO : ROL_MOVIMIENTO;
     const tieneCompromisoId = Boolean(compromisoId);
@@ -36,10 +45,10 @@ export async function POST(req: Request) {
           eventoId,
           proveedorId,
           rubroId,
-          monto: parseFloat(monto),
+          monto: montoValido,
           fecha: fecha ? new Date(fecha) : new Date(),
           concepto: concepto || null,
-          metodoPago: metodoPago ?? "TRANSF_ARS",
+          metodoPago: metodoPagoValido,
           rol: ROL_COMPROMISO,
         },
       });
@@ -64,10 +73,10 @@ export async function POST(req: Request) {
         eventoId,
         proveedorId,
         rubroId,
-        monto: parseFloat(monto),
+        monto: montoValido,
         fecha: fecha ? new Date(fecha) : new Date(),
         concepto: concepto || null,
-        metodoPago: metodoPago ?? "TRANSF_ARS",
+        metodoPago: metodoPagoValido,
         rol: ROL_MOVIMIENTO,
         compromisoId: tieneCompromisoId ? (compromisoId as string) : null,
       },

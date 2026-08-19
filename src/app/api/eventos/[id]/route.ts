@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseTipoCambioUsd } from "@/lib/metodos-pago";
 
 export async function GET(
   _req: Request,
@@ -52,6 +53,18 @@ export async function PUT(
       tipoCambioUsd,
       cajaChicaAsignadaArs,
     } = body;
+    const tipoCambioNormalizado =
+      tipoCambioUsd === undefined
+        ? undefined
+        : tipoCambioUsd === null || tipoCambioUsd === ""
+          ? null
+          : parseTipoCambioUsd(tipoCambioUsd);
+    if (tipoCambioUsd !== undefined && tipoCambioNormalizado === null && tipoCambioUsd != null && tipoCambioUsd !== "") {
+      return NextResponse.json(
+        { error: "El tipo de cambio debe ser un decimal positivo con hasta 6 decimales" },
+        { status: 400 }
+      );
+    }
     const evento = await prisma.evento.update({
       where: { id },
       data: {
@@ -71,7 +84,7 @@ export async function PUT(
         ...(honorariosHC !== undefined && { honorariosHC: honorariosHC != null ? Number(honorariosHC) : null }),
         ...(viaticosArmado !== undefined && { viaticosArmado: viaticosArmado != null ? Number(viaticosArmado) : null }),
         ...(diasArmado !== undefined && { diasArmado: Math.min(2, Math.max(1, parseInt(diasArmado, 10) || 2)) }),
-        ...(tipoCambioUsd !== undefined && { tipoCambioUsd: tipoCambioUsd ? parseFloat(tipoCambioUsd) : null }),
+        ...(tipoCambioUsd !== undefined && { tipoCambioUsd: tipoCambioNormalizado }),
         ...(cajaChicaAsignadaArs !== undefined && {
           cajaChicaAsignadaArs: (() => {
             if (cajaChicaAsignadaArs == null || cajaChicaAsignadaArs === "") return null;

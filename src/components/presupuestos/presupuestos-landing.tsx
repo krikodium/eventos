@@ -137,7 +137,7 @@ export function PresupuestosLanding({
                   <tr key={p.id}>
                     <td className="font-medium text-neutral-900">
                       <Link
-                        href={`/presupuestos/nuevo?presupuestoId=${p.id}`}
+                        href={`/presupuestos/${p.id}`}
                         className="hover:underline"
                       >
                         {p.evento}
@@ -151,7 +151,7 @@ export function PresupuestosLanding({
                     </td>
                     <td className="text-right">
                       <Link
-                        href={`/presupuestos/nuevo?presupuestoId=${p.id}`}
+                        href={`/presupuestos/${p.id}`}
                         className="whitespace-nowrap text-xs font-semibold text-accent-600 hover:text-accent-900"
                       >
                         Abrir →

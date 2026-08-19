@@ -4,7 +4,12 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { EstadoEventoBadge } from "@/components/ui/estado-badge";
 import { ESTADO_EVENTO, TIPO_EVENTO } from "@/lib/estados";
-import { filtrarCartera, totalesCartera, type EventoCartera } from "@/lib/cartera-eventos";
+import {
+  etiquetaAvanceCartera,
+  filtrarCartera,
+  totalesCartera,
+  type EventoCartera,
+} from "@/lib/cartera-eventos";
 
 type Cobranza = "todos" | "saldo" | "saldados" | "sin-presupuesto";
 type Periodo = "todos" | "mes" | "proximos" | "pasados";
@@ -92,7 +97,10 @@ function DetalleMonetario({ evento }: { evento: EventoCartera }) {
     {
       label: "Por cobrar",
       valor: evento.porCobrar,
-      tono: evento.porCobrar > 0 ? "text-amber-700" : "text-neutral-400",
+      tono:
+        evento.porCobrar !== null && evento.porCobrar > 0
+          ? "text-amber-700"
+          : "text-neutral-400",
     },
   ];
   const costos = [
@@ -103,6 +111,14 @@ function DetalleMonetario({ evento }: { evento: EventoCartera }) {
 
   return (
     <div className="grid gap-x-10 gap-y-5 px-4 pb-5 sm:grid-cols-2 lg:grid-cols-3 lg:pl-[94px]">
+      {evento.movimientosUsdSinTipoCambio > 0 && (
+        <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <span className="font-semibold">Conversión pendiente.</span>{" "}
+          {evento.movimientosUsdSinTipoCambio} movimiento
+          {evento.movimientosUsdSinTipoCambio === 1 ? " USD necesita" : "s USD necesitan"}{" "}
+          el tipo de cambio del evento. No se calculan saldo, resultado ni margen hasta cargarlo.
+        </div>
+      )}
       <div>
         <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
           Cobranza
@@ -112,7 +128,7 @@ function DetalleMonetario({ evento }: { evento: EventoCartera }) {
             <div key={f.label} className="flex items-center justify-between gap-4 py-2">
               <dt className="text-sm text-neutral-600">{f.label}</dt>
               <dd className={`text-sm font-semibold tabular-nums ${f.tono}`}>
-                {money.format(f.valor)}
+                {f.valor === null ? "Pendiente de TC" : money.format(f.valor)}
               </dd>
             </div>
           ))}
@@ -148,10 +164,12 @@ function DetalleMonetario({ evento }: { evento: EventoCartera }) {
           </p>
           <p
             className={`text-2xl font-semibold tabular-nums ${
-              evento.resultado >= 0 ? "text-neutral-950" : "text-rose-600"
+              evento.resultado === null || evento.resultado >= 0
+                ? "text-neutral-950"
+                : "text-rose-600"
             }`}
           >
-            {money.format(evento.resultado)}
+            {evento.resultado === null ? "Pendiente de TC" : money.format(evento.resultado)}
           </p>
           <p className="mt-1 text-xs text-neutral-500">
             Cobrado menos costos
@@ -189,12 +207,17 @@ function FilaEvento({ evento }: { evento: EventoCartera }) {
             {evento.nombre}
           </span>
           <span className="mt-0.5 block truncate text-xs text-neutral-500">{evento.cliente}</span>
+          {evento.movimientosUsdSinTipoCambio > 0 && (
+            <span className="mt-1 inline-flex rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+              Falta TC · {evento.movimientosUsdSinTipoCambio} mov. USD
+            </span>
+          )}
         </span>
 
         <span className="hidden w-40 shrink-0 md:block">
           <span className="mb-1.5 flex items-baseline justify-between gap-2">
             <span className="text-[11px] font-medium text-neutral-500">
-              {evento.avance === null ? "Sin presupuesto" : `${evento.avance.toFixed(0)}%`}
+              {etiquetaAvanceCartera(evento)}
             </span>
             <span className="text-[11px] tabular-nums text-neutral-400">
               {compact.format(evento.cobrado)}
@@ -210,10 +233,16 @@ function FilaEvento({ evento }: { evento: EventoCartera }) {
           </span>
           <span
             className={`block text-sm font-semibold tabular-nums ${
-              evento.porCobrar > 0 ? "text-amber-700" : "text-neutral-400"
+              evento.porCobrar !== null && evento.porCobrar > 0
+                ? "text-amber-700"
+                : "text-neutral-400"
             }`}
           >
-            {evento.presupuesto > 0 ? money.format(evento.porCobrar) : "—"}
+            {evento.porCobrar === null
+              ? "Falta TC"
+              : evento.presupuesto > 0
+                ? money.format(evento.porCobrar)
+                : "—"}
           </span>
         </span>
 
@@ -281,7 +310,12 @@ export function CarteraEventos({ eventos }: { eventos: EventoCartera[] }) {
       label: "Eventos",
       valor: String(totales.eventos),
       tono: "text-neutral-900",
-      extra: hayFiltro ? `de ${eventos.length} en total` : undefined,
+      extra:
+        totales.eventosSinTipoCambio > 0
+          ? `${totales.eventosSinTipoCambio} sin TC, fuera de totales monetarios`
+          : hayFiltro
+            ? `de ${eventos.length} en total`
+            : undefined,
     },
   ];
 
@@ -323,6 +357,12 @@ export function CarteraEventos({ eventos }: { eventos: EventoCartera[] }) {
             </div>
           ))}
         </dl>
+        {totales.eventosSinTipoCambio > 0 && (
+          <p className="mt-3 text-xs font-medium text-amber-700">
+            Los importes superiores incluyen solo {totales.eventosComparables} evento
+            {totales.eventosComparables === 1 ? "" : "s"} con conversión completa.
+          </p>
+        )}
       </header>
 
       <div className="flex flex-col gap-3 border-b border-neutral-100 bg-neutral-50/60 px-5 py-4 sm:px-6">
