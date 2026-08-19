@@ -6,6 +6,7 @@ import { TIPO_EVENTO } from "@/lib/estados";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { EventoDetalle } from "@/components/eventos/evento-detalle";
+import { CargaRapida, type TipoMov } from "@/components/eventos/carga-rapida";
 import { ResumenGastosEvento } from "@/components/eventos/resumen-gastos-evento";
 import { DetallesEstadoPagos } from "@/components/eventos/detalles-estado-pagos";
 import { DetallesEventoBasico } from "@/components/eventos/detalles-evento-basico";
@@ -37,6 +38,25 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
 
   const permisos = session.user.permisos;
   const isAdmin = session.user.role === "ADMIN";
+
+  // Catálogos para la carga rápida (sin esto habría que ir a buscarlos por fetch
+  // al abrir el panel, y la primera carga se sentiría lenta).
+  const [proveedoresCarga, utilerosCarga] = await Promise.all([
+    prisma.proveedorEvento.findMany({
+      orderBy: { nombre: "asc" },
+      select: { id: true, nombre: true, rubroId: true },
+    }),
+    prisma.utilero.findMany({
+      orderBy: { nombre: "asc" },
+      select: { id: true, nombre: true, tarifaPorDia: true },
+    }),
+  ]);
+
+  const tiposCarga: TipoMov[] = [];
+  if (isAdmin) tiposCarga.push("INGRESO");
+  if (isAdmin || permisos.registrarPagosProveedorMovimiento) tiposCarga.push("PROVEEDOR");
+  if (isAdmin || permisos.cajaChicaVer) tiposCarga.push("CAJA");
+  if (isAdmin || permisos.planillaUtilerosAgregar) tiposCarga.push("UTILERO");
 
   const compromisosResumen = await fetchCompromisosResumenForEventoRaw(id);
 
@@ -125,6 +145,14 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
               </Link>
             )}
           </div>
+
+          <CargaRapida
+            eventoId={evento.id}
+            proveedores={proveedoresCarga}
+            utileros={utilerosCarga}
+            nombreUsuario={session.user.name ?? ""}
+            permitidos={tiposCarga}
+          />
 
           <section className="mb-8">
             {permisos.eventoVerDetallePresupuestoCobros ? (
