@@ -76,5 +76,32 @@ check("caja por defecto es egreso",
   cajaDefault.ok && cajaDefault.movimientos[0].tipo === "CAJA" && cajaDefault.movimientos[0].sentido,
   "EGRESO");
 
+
+// ── Cotización vs pago realizado ───────────────────────────────────
+const comoPago = validarLote([okFila({ tipo: "PROVEEDOR", proveedorId: "p1", rubroId: "r1" })]);
+check("por defecto el proveedor se graba como MOVIMIENTO",
+  comoPago.ok && comoPago.movimientos[0].tipo === "PROVEEDOR" && comoPago.movimientos[0].rol,
+  "MOVIMIENTO");
+
+const comoCotiz = validarLote([
+  okFila({ tipo: "PROVEEDOR", proveedorId: "p1", rubroId: "r1", rol: "COMPROMISO" }),
+]);
+check("acepta cotización",
+  comoCotiz.ok && comoCotiz.movimientos[0].tipo === "PROVEEDOR" && comoCotiz.movimientos[0].rol,
+  "COMPROMISO");
+check("la cotización no lleva imputación",
+  comoCotiz.ok && comoCotiz.movimientos[0].tipo === "PROVEEDOR" && comoCotiz.movimientos[0].compromisoId,
+  null);
+
+const imputado = validarLote([
+  okFila({ tipo: "PROVEEDOR", proveedorId: "p1", rubroId: "r1", compromisoId: "c1" }),
+]);
+check("el pago conserva la cotización imputada",
+  imputado.ok && imputado.movimientos[0].tipo === "PROVEEDOR" && imputado.movimientos[0].compromisoId,
+  "c1");
+
+check("una cotización no se imputa a otra", validarLote([
+  okFila({ tipo: "PROVEEDOR", proveedorId: "p1", rubroId: "r1", rol: "COMPROMISO", compromisoId: "c1" }),
+]).ok, false);
 console.log(fallos === 0 ? "\nTodo OK" : `\n${fallos} fallas`);
 process.exit(fallos === 0 ? 0 : 1);

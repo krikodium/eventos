@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { validarLote, ROL_LOTE_PROVEEDOR } from "@/lib/movimientos-lote";
+import { validarLote } from "@/lib/movimientos-lote";
+import { ROL_COMPROMISO } from "@/lib/pagos-proveedor-utils";
 import { resolvePermisos } from "@/lib/permisos";
 
 /**
@@ -107,6 +108,27 @@ export async function POST(
       }
     }
 
+    // Un pago solo puede imputarse a una cotización DEL MISMO evento: sin esto
+    // se podría colgar plata de un compromiso de otro evento.
+    const compromisoIds = [
+      ...new Set(
+        validacion.movimientos
+          .filter((m) => m.tipo === "PROVEEDOR" && m.compromisoId)
+          .map((m) => (m as { compromisoId: string }).compromisoId)
+      ),
+    ];
+    if (compromisoIds.length > 0) {
+      const validos = await prisma.pagoProveedor.count({
+        where: { id: { in: compromisoIds }, eventoId, rol: ROL_COMPROMISO },
+      });
+      if (validos !== compromisoIds.length) {
+        return NextResponse.json(
+          { error: "Alguna cotización no pertenece a este evento" },
+          { status: 400 }
+        );
+      }
+    }
+
     await prisma.$transaction(async (tx) => {
       for (const mov of validacion.movimientos) {
         if (mov.tipo === "INGRESO") {
@@ -131,7 +153,8 @@ export async function POST(
               metodoPago: mov.metodoPago,
               concepto: mov.concepto,
               fecha: mov.fecha,
-              rol: ROL_LOTE_PROVEEDOR,
+              rol: mov.rol,
+              compromisoId: mov.compromisoId,
             },
           });
         } else if (mov.tipo === "CAJA") {

@@ -150,8 +150,13 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
             eventoId={evento.id}
             proveedores={proveedoresCarga}
             utileros={utilerosCarga}
+            compromisos={compromisosResumen.map((c) => ({
+              id: c.id,
+              etiqueta: `${c.proveedorNombre} · $${c.montoTotal.toLocaleString("es-AR")}`,
+            }))}
             nombreUsuario={session.user.name ?? ""}
             permitidos={tiposCarga}
+            puedeCargarCompromiso={isAdmin || permisos.cargaCompromisosProveedor}
           />
 
           <section className="mb-8">

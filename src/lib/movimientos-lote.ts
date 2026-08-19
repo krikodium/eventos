@@ -1,7 +1,7 @@
 import { parseMontoPositivo, resolverMetodoPago } from "./metodos-pago";
 import { esTipoIngresoValido } from "./ingresos";
 import { CAJA_SENTIDO_EGRESO, CAJA_SENTIDO_INGRESO } from "./caja-chica-pesos";
-import { ROL_MOVIMIENTO } from "./pagos-proveedor-utils";
+import { ROL_COMPROMISO, ROL_MOVIMIENTO } from "./pagos-proveedor-utils";
 
 /**
  * Validación de un lote de movimientos cargados de una sola vez.
@@ -33,6 +33,10 @@ export type MovimientoValidado =
       rubroId: string;
       concepto: string | null;
       fecha: Date;
+      /** MOVIMIENTO = plata que salió. COMPROMISO = cotización acordada. */
+      rol: string;
+      /** Cotización a la que se imputa este pago. Solo para MOVIMIENTO. */
+      compromisoId: string | null;
     }
   | {
       tipo: "CAJA";
@@ -145,6 +149,15 @@ export function validarLote(filas: unknown): ResultadoLote {
       const rubroId = texto(fila.rubroId);
       if (!proveedorId) return { ok: false, fila: nro, error: "Falta el proveedor" };
       if (!rubroId) return { ok: false, fila: nro, error: "Falta el rubro del proveedor" };
+      const esCompromiso = fila.rol === ROL_COMPROMISO;
+      const compromisoId = texto(fila.compromisoId);
+      if (esCompromiso && compromisoId) {
+        return {
+          ok: false,
+          fila: nro,
+          error: "Una cotización no se imputa a otra cotización",
+        };
+      }
       movimientos.push({
         tipo: "PROVEEDOR",
         monto,
@@ -153,6 +166,8 @@ export function validarLote(filas: unknown): ResultadoLote {
         rubroId,
         concepto,
         fecha,
+        rol: esCompromiso ? ROL_COMPROMISO : ROL_MOVIMIENTO,
+        compromisoId: esCompromiso ? null : compromisoId,
       });
       continue;
     }

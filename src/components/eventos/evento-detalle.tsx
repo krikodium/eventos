@@ -263,7 +263,6 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
               />
             ) : (
               <PagosProveedores
-                eventoId={evento.id}
                 pagos={evento.pagosProveedores}
                 puedeRegistrarMovimiento={permisos.registrarPagosProveedorMovimiento}
                 puedeEliminar={permisos.eliminarPagosProveedor}
