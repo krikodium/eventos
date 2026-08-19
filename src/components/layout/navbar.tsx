@@ -6,13 +6,14 @@ import { useSession, signOut } from "next-auth/react";
 import { LogoMark } from "@/components/ui/logo";
 import { puedeVerFinanzas } from "@/lib/acceso-finanzas";
 
-type IconName = "inicio" | "eventos" | "presupuestos" | "proveedores" | "utileros" | "reportes" | "usuarios";
+type IconName = "inicio" | "eventos" | "presupuestos" | "caja" | "proveedores" | "utileros" | "reportes" | "usuarios";
 
 function NavIcon({ name }: { name: IconName }) {
   const paths: Record<IconName, React.ReactNode> = {
     inicio: <><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5M9 21v-7h6v7" /></>,
     eventos: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /><path d="m9 16 2 2 4-5" /></>,
     presupuestos: <><path d="M6 2h9l5 5v15H6z" /><path d="M14 2v6h6M9 13h8M9 17h6" /></>,
+    caja: <><rect x="3" y="7" width="18" height="12" rx="2" /><path d="M3 11h18M16 15h2" /></>,
     proveedores: <><path d="M3 21h18M5 21V8l7-4 7 4v13" /><path d="M9 21v-6h6v6M9 10h.01M15 10h.01" /></>,
     utileros: <><circle cx="9" cy="7" r="4" /><path d="M2.5 21v-2a6.5 6.5 0 0 1 13 0v2M17 11l2 2 3-4" /></>,
     reportes: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>,
@@ -54,6 +55,7 @@ export function Navbar() {
             <NavLink href="/" label="Inicio" icon="inicio" exact />
             <NavLink href="/eventos" label="Eventos" icon="eventos" />
             {(isAdmin || permisos?.navPresupuestos) ? <NavLink href="/presupuestos" label="Presupuestos" icon="presupuestos" /> : null}
+            {(isAdmin || permisos?.cajaChicaVer) ? <NavLink href="/caja-chica" label="Caja chica" icon="caja" /> : null}
             {verFinanzas ? <NavLink href="/finanzas" label="Finanzas" icon="reportes" /> : null}
           </div>
           {isAdmin ? <>
@@ -86,6 +88,7 @@ export function Navbar() {
               <Link href="/" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Inicio</Link>
               <Link href="/eventos" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Eventos</Link>
               {(isAdmin || permisos?.navPresupuestos) ? <Link href="/presupuestos" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Presupuestos</Link> : null}
+              {(isAdmin || permisos?.cajaChicaVer) ? <Link href="/caja-chica" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Caja chica</Link> : null}
               {verFinanzas ? <Link href="/finanzas" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Finanzas</Link> : null}
               {isAdmin ? <><Link href="/proveedores" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Proveedores</Link><Link href="/utileros" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Utileros</Link><Link href="/usuarios" className="rounded-lg px-3 py-2 text-xs font-semibold text-neutral-600">Usuarios</Link></> : null}
             </div>

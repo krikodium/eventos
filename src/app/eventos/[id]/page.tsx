@@ -7,6 +7,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { EventoDetalle } from "@/components/eventos/evento-detalle";
 import { CargaRapida, type TipoMov } from "@/components/eventos/carga-rapida";
+import { SeccionesNav, type ItemSeccion, type SeccionId } from "@/components/eventos/secciones-nav";
+import { CabeceraFinanciera, PresupuestosDelEvento } from "@/components/eventos/resumen-evento";
 import { ResumenGastosEvento } from "@/components/eventos/resumen-gastos-evento";
 import { DetallesEstadoPagos } from "@/components/eventos/detalles-estado-pagos";
 import { DetallesEventoBasico } from "@/components/eventos/detalles-evento-basico";
@@ -18,11 +20,22 @@ import {
 } from "@/lib/pago-proveedor-raw";
 import { cajaSentidoEsEgreso, sumaEgresosCajaChicaEnArs } from "@/lib/caja-chica-pesos";
 
-export default async function EventoPage({ params }: { params: Promise<{ id: string }> }) {
+const SECCIONES: SeccionId[] = ["resumen", "cobros", "pagos", "utileros", "caja"];
+
+export default async function EventoPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ s?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.permisos) redirect("/login");
 
   const { id } = await params;
+  const { s } = await searchParams;
+  const pedida: SeccionId = SECCIONES.includes(s as SeccionId) ? (s as SeccionId) : "resumen";
+
   const evento = await prisma.evento.findUnique({
     where: { id },
     include: {
@@ -39,9 +52,7 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
   const permisos = session.user.permisos;
   const isAdmin = session.user.role === "ADMIN";
 
-  // Catálogos para la carga rápida (sin esto habría que ir a buscarlos por fetch
-  // al abrir el panel, y la primera carga se sentiría lenta).
-  const [proveedoresCarga, utilerosCarga] = await Promise.all([
+  const [proveedoresCarga, utilerosCarga, presupuestos] = await Promise.all([
     prisma.proveedorEvento.findMany({
       orderBy: { nombre: "asc" },
       select: { id: true, nombre: true, rubroId: true },
@@ -50,102 +61,125 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
       orderBy: { nombre: "asc" },
       select: { id: true, nombre: true, tarifaPorDia: true },
     }),
+    prisma.presupuesto
+      .findMany({
+        where: { eventoId: id },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, evento: true, total: true, presupuestoNro: true, createdAt: true },
+      })
+      .catch(() => []),
   ]);
 
-  const tiposCarga: TipoMov[] = [];
-  if (isAdmin) tiposCarga.push("INGRESO");
-  if (isAdmin || permisos.registrarPagosProveedorMovimiento) tiposCarga.push("PROVEEDOR");
-  if (isAdmin || permisos.cajaChicaVer) tiposCarga.push("CAJA");
-  if (isAdmin || permisos.planillaUtilerosAgregar) tiposCarga.push("UTILERO");
-
   const compromisosResumen = await fetchCompromisosResumenForEventoRaw(id);
-
   const pagosGrafRaw = await fetchPagosMovimientoParaGraficoRaw(id);
   const pagosParaGrafico =
     pagosGrafRaw.length > 0 ? pagosGrafRaw : evento.pagosProveedores.filter(esMovimientoPago);
 
-  const totalIngresos = evento.ingresos.reduce((s, i) => s + i.monto, 0);
+  const totalIngresos = evento.ingresos.reduce((sum, i) => sum + i.monto, 0);
   const totalPagosRaw = await sumMovimientosProveedorEventoRaw(id);
   const totalPagos =
     totalPagosRaw !== null ? totalPagosRaw : totalMovimientosProveedor(evento.pagosProveedores);
-  const totalUtileros = evento.diasUtileros.reduce((s, d) => s + d.monto, 0);
+  const totalUtileros = evento.diasUtileros.reduce((sum, d) => sum + d.monto, 0);
   const totalCajaChicaAgg = sumaEgresosCajaChicaEnArs(evento.cajaChica, evento.tipoCambioUsd);
   const totalCajaChica =
     totalCajaChicaAgg === "FALTA_TC"
-      ? evento.cajaChica.filter((c) => cajaSentidoEsEgreso(c.sentido)).reduce((s, c) => s + c.monto, 0)
+      ? evento.cajaChica
+          .filter((c) => cajaSentidoEsEgreso(c.sentido))
+          .reduce((sum, c) => sum + c.monto, 0)
       : totalCajaChicaAgg;
   const totalEgresos = totalPagos + totalUtileros + totalCajaChica;
   const balance = totalIngresos - totalEgresos;
 
-  const kpiAccent: Record<string, { tint: string; chip: string; bar: string }> = {
-    emerald: { tint: "from-white to-neutral-50/60", chip: "bg-emerald-50 text-emerald-700", bar: "from-emerald-400 to-emerald-500" },
-    orange: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
-    violet: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
-    amber: { tint: "from-white to-neutral-50/60", chip: "bg-neutral-100 text-neutral-600", bar: "from-neutral-300 to-neutral-400" },
-    rose: { tint: "from-white to-neutral-50/60", chip: "bg-rose-50 text-rose-700", bar: "from-rose-400 to-rose-500" },
+  // Qué secciones ve este usuario, según sus permisos.
+  const verCobros = permisos.eventoVerTabIngresos;
+  const verPagos =
+    permisos.cargaCompromisosProveedor ||
+    permisos.verMovimientosProveedorDetalle ||
+    permisos.registrarPagosProveedorMovimiento;
+  const verUtileros =
+    permisos.planillaUtilerosAgregar ||
+    permisos.planillaUtilerosEditarTareas ||
+    permisos.planillaUtilerosVerPagosDetalle;
+  const verCaja = permisos.cajaChicaVer;
+
+  const items: ItemSeccion[] = [{ id: "resumen", label: "Detalle" }];
+  if (verCobros) items.push({ id: "cobros", label: "Cobros", badge: evento.ingresos.length });
+  if (verPagos) items.push({ id: "pagos", label: "Pagos", badge: evento.pagosProveedores.length });
+  if (verUtileros)
+    items.push({ id: "utileros", label: "Utileros", badge: evento.diasUtileros.length });
+  if (verCaja) items.push({ id: "caja", label: "Caja chica", badge: evento.cajaChica.length });
+
+  // Si la sección pedida no está permitida, cae al detalle.
+  const activa = items.some((i) => i.id === pedida) ? pedida : "resumen";
+
+  // El panel de carga muestra solo el tipo de la sección donde estás.
+  const tiposPorSeccion: Record<SeccionId, TipoMov[]> = {
+    resumen: [],
+    cobros: isAdmin ? ["INGRESO"] : [],
+    pagos: isAdmin || permisos.registrarPagosProveedorMovimiento ? ["PROVEEDOR"] : [],
+    utileros: isAdmin || permisos.planillaUtilerosAgregar ? ["UTILERO"] : [],
+    caja: isAdmin || permisos.cajaChicaVer ? ["CAJA"] : [],
   };
 
-  const kpiEvento: {
-    label: string;
-    value: number;
-    accent: keyof typeof kpiAccent;
-    sub?: string;
-    icon: React.ReactNode;
-  }[] = [
-    { label: "Ingresos", value: totalIngresos, accent: "emerald", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="m7 11 5-5 5 5M12 6v12" /> },
-    { label: "Proveedores", value: totalPagos, accent: "orange", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M3 7h13v10H3zM16 10h3l2 3v4h-5m-6 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" /> },
-    { label: "Utileros", value: totalUtileros, accent: "violet", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M17 20h5v-1a4 4 0 0 0-4-4h-1m-4 5v-1a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v1h11Zm-2-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm8 1a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" /> },
-    { label: "Caja chica", value: totalCajaChica, accent: "amber", sub: "Solo egresos (equiv. ARS si hay TC)", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M21 12H3m18 0v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6m18 0-2.5-6h-13L3 12" /> },
-  ];
+  const fichaEvento = {
+    nombre: evento.nombre,
+    fecha: evento.fecha,
+    tipo: evento.tipo,
+    cliente: evento.cliente,
+    descripcion: evento.descripcion,
+    organizadora: evento.organizadora,
+    provincia: evento.provincia,
+    localidad: evento.localidad,
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-sm text-neutral-500 mb-4">
-            <Link href="/eventos" className="hover:text-neutral-900 transition-colors">
-              Eventos
-            </Link>
-            <span>/</span>
-            <span className="text-neutral-900 font-medium truncate max-w-[200px] sm:max-w-none">
-              {evento.nombre}
-            </span>
-          </nav>
+      <main className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
+        <nav className="mb-3 flex items-center gap-2 text-[13px] text-neutral-500">
+          <Link href="/eventos" className="transition-colors hover:text-neutral-900">
+            Eventos
+          </Link>
+          <span className="text-neutral-300">/</span>
+          <span className="max-w-[220px] truncate font-medium text-neutral-900 sm:max-w-none">
+            {evento.nombre}
+          </span>
+        </nav>
 
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
+        <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-semibold tracking-[-0.02em] text-neutral-950 sm:text-[28px]">
                 {evento.nombre}
               </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-2 text-neutral-600">
-                <span className="text-sm">{TIPO_EVENTO[evento.tipo] ?? evento.tipo}</span>
-                <span className="text-neutral-300">•</span>
-                <span className="text-sm">{evento.cliente}</span>
-                <span className="text-neutral-300">•</span>
-                <span className="text-sm">
-                  {new Date(evento.fecha).toLocaleDateString("es-AR", {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
-              <span className="mt-3 inline-flex">
-                <EstadoEventoBadge estado={evento.estado} dot />
-              </span>
+              <EstadoEventoBadge estado={evento.estado} dot />
             </div>
-            {isAdmin && (
-              <Link
-                href={`/eventos/${evento.id}/editar`}
-                className="shrink-0 px-4 py-2.5 bg-white hover:bg-neutral-50 text-neutral-700 rounded-lg border border-neutral-200 font-medium text-sm shadow-sm hover:shadow transition-all"
-              >
-                Editar evento
-              </Link>
-            )}
+            <p className="mt-1.5 text-[13px] text-neutral-500">
+              {TIPO_EVENTO[evento.tipo] ?? evento.tipo}
+              <span className="mx-1.5 text-neutral-300">·</span>
+              {evento.cliente}
+              <span className="mx-1.5 text-neutral-300">·</span>
+              {new Date(evento.fecha).toLocaleDateString("es-AR", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </p>
           </div>
+          {isAdmin && (
+            <Link
+              href={`/eventos/${evento.id}/editar`}
+              className="shrink-0 rounded-md border border-neutral-300 bg-white px-4 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-50"
+            >
+              Editar evento
+            </Link>
+          )}
+        </header>
 
+        <SeccionesNav items={items} activa={activa} />
+
+        {tiposPorSeccion[activa].length > 0 && (
           <CargaRapida
             eventoId={evento.id}
             proveedores={proveedoresCarga}
@@ -154,110 +188,63 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
               id: c.id,
               etiqueta: `${c.proveedorNombre} · $${c.montoTotal.toLocaleString("es-AR")}`,
             }))}
-            nombreUsuario={session.user.name ?? ""}
-            permitidos={tiposCarga}
+            nombreUsuario={session.user.name ?? session.user.email ?? ""}
+            permitidos={tiposPorSeccion[activa]}
             puedeCargarCompromiso={isAdmin || permisos.cargaCompromisosProveedor}
           />
+        )}
 
-          <section className="mb-8">
-            {permisos.eventoVerDetallePresupuestoCobros ? (
-              <DetallesEstadoPagos
-                evento={{
-                  nombre: evento.nombre,
-                  fecha: evento.fecha,
-                  tipo: evento.tipo,
-                  cliente: evento.cliente,
-                  descripcion: evento.descripcion,
-                  organizadora: evento.organizadora,
-                  provincia: evento.provincia,
-                  localidad: evento.localidad,
-                  presupuestoTotal: evento.presupuestoTotal,
-                  presupuestoNro: evento.presupuestoNro,
-                  formaPagoAcordada: evento.formaPagoAcordada,
-                  honorariosHC: evento.honorariosHC,
-                  viaticosArmado: evento.viaticosArmado,
-                }}
-                ingresos={evento.ingresos}
-              />
-            ) : (
-              <DetallesEventoBasico
-                evento={{
-                  nombre: evento.nombre,
-                  fecha: evento.fecha,
-                  tipo: evento.tipo,
-                  cliente: evento.cliente,
-                  descripcion: evento.descripcion,
-                  organizadora: evento.organizadora,
-                  provincia: evento.provincia,
-                  localidad: evento.localidad,
-                }}
+        {activa === "resumen" ? (
+          <div className="space-y-6">
+            {permisos.eventoVerResumenTarjetas && (
+              <CabeceraFinanciera
+                presupuesto={evento.presupuestoTotal ?? 0}
+                cobrado={totalIngresos}
+                egresos={totalEgresos}
+                balance={balance}
               />
             )}
-          </section>
 
-          {permisos.eventoVerResumenTarjetas && (
-            <section className="mb-8">
-              <h2 className="sr-only">Resumen financiero</h2>
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-                {kpiEvento.map((card) => {
-                  const a = kpiAccent[card.accent];
-                  return (
-                    <div
-                      key={card.label}
-                      className={`group relative overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br ${a.tint} p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-5`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{card.label}</p>
-                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${a.chip} transition-transform group-hover:scale-110`}>
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">{card.icon}</svg>
-                        </span>
-                      </div>
-                      <p className="mt-3 text-xl font-bold tabular-nums text-neutral-900 sm:text-2xl">
-                        ${card.value.toLocaleString("es-AR")}
-                      </p>
-                      {card.sub && <p className="mt-1 text-[11px] text-neutral-400">{card.sub}</p>}
-                      <div className={`mt-3 h-1 w-full rounded-full bg-gradient-to-r ${a.bar} opacity-70 transition-opacity group-hover:opacity-100`} />
-                    </div>
-                  );
-                })}
-                <div className="group relative col-span-2 overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50/60 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-5 lg:col-span-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Balance</p>
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${balance >= 0 ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 19V5m0 14h16M8 15l3-3 3 2 5-7" />
-                      </svg>
-                    </span>
-                  </div>
-                  <p className="mt-3 text-xl font-bold tabular-nums text-neutral-900 sm:text-2xl">
-                    {balance < 0 ? "-$" : "$"}{Math.abs(balance).toLocaleString("es-AR")}
-                  </p>
-                  <div className={`mt-3 h-1 w-full rounded-full bg-gradient-to-r opacity-70 transition-opacity group-hover:opacity-100 ${balance >= 0 ? "from-emerald-300 to-emerald-500" : "from-rose-300 to-rose-500"}`} />
-                </div>
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start">
+              <div className="space-y-6">
+                {permisos.eventoVerDetallePresupuestoCobros ? (
+                  <DetallesEstadoPagos
+                    evento={{
+                      ...fichaEvento,
+                      presupuestoTotal: evento.presupuestoTotal,
+                      presupuestoNro: evento.presupuestoNro,
+                      formaPagoAcordada: evento.formaPagoAcordada,
+                      honorariosHC: evento.honorariosHC,
+                      viaticosArmado: evento.viaticosArmado,
+                    }}
+                    ingresos={evento.ingresos}
+                  />
+                ) : (
+                  <DetallesEventoBasico evento={fichaEvento} />
+                )}
               </div>
-            </section>
-          )}
 
-          {permisos.eventoVerGraficoGastos && (
-            <section className="mb-8">
+              <PresupuestosDelEvento presupuestos={presupuestos} eventoId={evento.id} />
+            </div>
+
+            {permisos.eventoVerGraficoGastos && (
               <ResumenGastosEvento
                 pagos={pagosParaGrafico}
                 diasUtileros={evento.diasUtileros}
                 cajaChica={evento.cajaChica}
               />
-            </section>
-          )}
-        </div>
-
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
+            )}
+          </div>
+        ) : (
           <EventoDetalle
             evento={evento}
             permisos={permisos}
             compromisosResumen={compromisosResumen}
             isAdmin={isAdmin}
             nombreUsuario={session.user.name ?? session.user.email ?? ""}
+            seccion={activa}
           />
-        </section>
+        )}
       </main>
     </div>
   );

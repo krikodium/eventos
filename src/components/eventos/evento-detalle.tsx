@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PagosProveedores } from "./pagos-proveedores";
 import { PlanillaUtileros } from "./planilla-utileros";
@@ -76,9 +76,11 @@ type Props = {
   compromisosResumen: CompromisoResumen[];
   isAdmin: boolean;
   nombreUsuario: string;
+  /** Sección activa, decidida por la URL en la página. */
+  seccion: "cobros" | "pagos" | "utileros" | "caja";
 };
 
-export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, nombreUsuario }: Props) {
+export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, nombreUsuario, seccion }: Props) {
   const router = useRouter();
 
   const verPagos =
@@ -99,42 +101,13 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
   const verCaja = permisos.cajaChicaVer;
   const verIngresos = permisos.eventoVerTabIngresos;
 
-  const tabs = useMemo(() => {
-    const out: { id: TabId; label: string; count: number }[] = [];
-    if (verPagos) {
-      out.push({
-        id: "pagos",
-        label: soloVistaCompromisos ? "Cotizaciones proveedores" : "Pagos a proveedores",
-        count: soloVistaCompromisos ? compromisosResumen.length : evento.pagosProveedores.length,
-      });
-    }
-    if (verUtileros) {
-      out.push({ id: "utileros", label: "Utileros", count: evento.diasUtileros.length });
-    }
-    if (verCaja) {
-      out.push({ id: "caja", label: "Caja chica", count: evento.cajaChica?.length ?? 0 });
-    }
-    if (verIngresos) {
-      out.push({ id: "ingresos", label: "Ingresos", count: evento.ingresos.length });
-    }
-    return out;
-  }, [
-    verPagos,
-    soloVistaCompromisos,
-    verUtileros,
-    verCaja,
-    verIngresos,
-    compromisosResumen.length,
-    evento.pagosProveedores.length,
-    evento.diasUtileros.length,
-    evento.cajaChica?.length,
-    evento.ingresos.length,
-  ]);
-
-  const firstTab = tabs[0]?.id ?? "pagos";
-  const [tabSel, setTabSel] = useState<TabId | null>(null);
-  const tabActivo: TabId =
-    tabSel != null && tabs.some((t) => t.id === tabSel) ? tabSel : firstTab;
+  const MAPA: Record<string, TabId> = {
+    cobros: "ingresos",
+    pagos: "pagos",
+    utileros: "utileros",
+    caja: "caja",
+  };
+  const tabActivo: TabId = MAPA[seccion] ?? "pagos";
 
   async function handleDiasArmadoChange(dias: number) {
     try {
@@ -202,33 +175,6 @@ export function EventoDetalle({ evento, permisos, compromisosResumen, isAdmin, n
               )}
             </div>
           )}
-        </div>
-      </div>
-
-      <div className="border-b border-neutral-100 px-4 py-4 sm:px-6">
-        <div className="inline-flex max-w-full flex-wrap gap-1 rounded-xl bg-neutral-100 p-1">
-          {tabs.map((t) => {
-            const activo = tabActivo === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTabSel(t.id)}
-                className={`inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                  activo ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
-                }`}
-              >
-                {t.label}
-                <span
-                  className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${
-                    activo ? "bg-neutral-900 text-white" : "bg-neutral-200 text-neutral-600"
-                  }`}
-                >
-                  {t.count}
-                </span>
-              </button>
-            );
-          })}
         </div>
       </div>
 
